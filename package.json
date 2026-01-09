@@ -10,7 +10,9 @@
     "cap:sync": "npx cap sync",
     "cap:add": "npx cap add",
     "cap:copy": "npx cap copy",
-    "cap:open": "npx cap open"
+    "cap:open": "npx cap open",
+    "cap:assets": "npx @capacitor/assets generate",
+    "icon:generate": "node scripts/generate-icon.js"
   },
   "dependencies": {
     "@capacitor/android": "^6.1.2",
@@ -28,12 +30,14 @@
     "react-toastify": "^11.0.5"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4.1.18",
     "typescript": "^5"
   }

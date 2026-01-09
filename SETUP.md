@@ -70,6 +70,28 @@
    - iOS: Build and run from Xcode
    - Android: Build and run from Android Studio
 
+### App Icons Setup
+
+To set up the app icon for iOS and Android:
+
+1. **Prepare your source icon:**
+   - Create or obtain a 1024×1024 pixel PNG image of your VANSHAVALI logo
+   - The icon should be square with no rounded corners (platforms will apply their own masks)
+   - Save it as `icon.png` in the `resources` folder
+
+2. **Generate platform-specific icons:**
+   ```bash
+   npm run cap:assets
+   ```
+   This will automatically generate all required icon sizes for both iOS and Android platforms.
+
+3. **Sync the icons to native projects:**
+   ```bash
+   npm run cap:sync
+   ```
+
+**Note:** If you have the VANSHAVALI logo image file, place it at `resources/icon.png` (1024×1024 pixels) and run the command above to generate all platform icons automatically.
+
 ## Notes
 
 - The application uses placeholder text throughout
