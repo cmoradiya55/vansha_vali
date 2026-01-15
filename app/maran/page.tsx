@@ -2,22 +2,14 @@
 
 import { useState } from 'react';
 import Layout from '@/components/Layout';
-import FamilyTree from '@/components/FamilyTree';
+import HierarchicalTree from '@/components/HierarchicalTree';
 import PhotoUpload from '@/components/PhotoUpload';
+import DatePicker from '@/components/DatePicker';
+import RequiredLabel from '@/components/RequiredLabel';
 import { generatePDF } from '@/utils/pdfGenerator';
+import { generatePDFFromHTML } from '@/utils/pdfGeneratorHtml2Canvas';
+import { handleGujaratiInput, handleGujaratiPaste, filterGujaratiOnly } from '@/utils/gujaratiInputValidator';
 // Simple SVG Icon Components for website
-const CalendarIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className={className}
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-  </svg>
-);
 
 const PrintIcon = ({ className }: { className?: string }) => (
   <svg
@@ -40,6 +32,8 @@ interface FamilyMember {
   hayat?: string;
   birth?: string;
   death?: string;
+  deathDateType?: string;
+  deathAashre?: string;
   children: FamilyMember[];
 }
 
@@ -76,6 +70,8 @@ export default function MaranPage() {
     deceasedRelation: '',
     deathPlace: '',
     deathDate: '',
+    deathDateType: 'tarikh', // 'tarikh' or 'aashre'
+    deathAashre: '',
     pedhinamuPurpose: '',
     pedhinamuDate: '',
     applicationDate: '',
@@ -103,7 +99,6 @@ export default function MaranPage() {
     notaryName: '',
     regNo: '',
     serialNo: '',
-    affidavitCheckbox: false,
     pedhinamuPurposeFinal: '',
     applicantSignature: '',
     inPerson: '',
@@ -131,19 +126,33 @@ export default function MaranPage() {
 
 
   const handleInputChange = (field: string, value: string) => {
+    // Filter out non-Gujarati characters for text fields (except dates, numbers, etc.)
+    const textFields = [
+      'applicantName', 'applicantResident', 'applicantTaluko', 'relationToDeceased',
+      'deceasedRelation', 'deathPlace', 'deathAashre', 'pedhinamuPurpose',
+      'place', 'declarantSignature', 'thumbImpression', 'aadharNumber',
+      'panchMoje', 'panchTaluko', 'panchJillo', 'finalPlace', 'notaryName',
+      'regNo', 'serialNo', 'pedhinamuPurposeFinal', 'applicantSignature', 'inPerson'
+    ];
+    
+    let filteredValue = value;
+    if (textFields.includes(field)) {
+      filteredValue = filterGujaratiOnly(value);
+    }
+    
     setFormData((prev) => {
-      const updated = { ...prev, [field]: value };
+      const updated = { ...prev, [field]: filteredValue };
       
       // Auto-fill taluka and jillo when moje is selected
-      if (field === 'moje' && value && locationData[value]) {
-        updated.taluko = locationData[value].taluka;
-        updated.jillo = locationData[value].jillo;
+      if (field === 'moje' && filteredValue && locationData[filteredValue]) {
+        updated.taluko = locationData[filteredValue].taluka;
+        updated.jillo = locationData[filteredValue].jillo;
       }
       
       // Auto-fill panch taluka and jillo when panch moje is selected
-      if (field === 'panchMoje' && value && locationData[value]) {
-        updated.panchTaluko = locationData[value].taluka;
-        updated.panchJillo = locationData[value].jillo;
+      if (field === 'panchMoje' && filteredValue && locationData[filteredValue]) {
+        updated.panchTaluko = locationData[filteredValue].taluka;
+        updated.panchJillo = locationData[filteredValue].jillo;
       }
       
       return updated;
@@ -151,9 +160,16 @@ export default function MaranPage() {
   };
 
   const handlePanchChange = (index: number, field: string, value: string) => {
+    // Filter out non-Gujarati characters for text fields
+    const textFields = ['name', 'resident', 'aadhar', 'income', 'occupation'];
+    let filteredValue = value;
+    if (textFields.includes(field)) {
+      filteredValue = filterGujaratiOnly(value);
+    }
+    
     setFormData((prev) => {
       const newPanch = [...prev.panchDetails];
-      newPanch[index] = { ...newPanch[index], [field]: value };
+      newPanch[index] = { ...newPanch[index], [field]: filteredValue };
       return { ...prev, panchDetails: newPanch };
     });
   };
@@ -167,11 +183,13 @@ export default function MaranPage() {
   };
 
   const handlePrint = () => {
-    const pdfData = {
-      ...formData,
-      familyTree: flattenFamilyTree(familyTree),
-    };
-    generatePDF(pdfData, true);
+    // Use html2canvas to capture the form and generate PDF
+    generatePDFFromHTML('maran-form-container', 'maran_pedhinamu.pdf', {
+      format: 'legal',
+      orientation: 'landscape',
+      quality: 1,
+      scale: 2,
+    });
   };
 
   const flattenFamilyTree = (members: FamilyMember[]): any[] => {
@@ -183,6 +201,8 @@ export default function MaranPage() {
         relation: member.relation,
         birth: member.birth,
         death: member.death,
+        deathDateType: member.deathDateType,
+        deathAashre: member.deathAashre,
       });
       member.children.forEach(traverse);
     };
@@ -192,7 +212,7 @@ export default function MaranPage() {
 
   return (
     <Layout>
-      <div className="mx-auto max-w-6xl space-y-4 sm:space-y-6 px-2 sm:px-4">
+      <div id="maran-form-container" className="mx-auto max-w-6xl space-y-4 sm:space-y-6 px-2 sm:px-4">
         {/* Title */}
         <div className="text-center mb-4 sm:mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-black">મરણ</h1>
@@ -220,7 +240,10 @@ export default function MaranPage() {
                   type="text"
                   value={formData.applicantName}
                   onChange={(e) => handleInputChange('applicantName', e.target.value)}
+                  onKeyDown={handleGujaratiInput}
+                  onPaste={handleGujaratiPaste}
                   placeholder="નામ"
+                  required
                   className="w-full text-center border-none border-b-2 border-black bg-transparent focus:outline-none focus:border-yellow-500 text-black pb-1 text-sm sm:text-base"
                 />
                 <div className="w-full border-b-2 border-black mt-1"></div>
@@ -228,32 +251,36 @@ export default function MaranPage() {
             </div>
             <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div>
-                <label className="mb-1 block text-xs sm:text-sm font-medium text-black">ઉ.વ.આ.</label>
-                <input
-                  type="text"
+                <DatePicker
                   value={formData.applicantDate}
-                  onChange={(e) => handleInputChange('applicantDate', e.target.value)}
+                  onChange={(value) => handleInputChange('applicantDate', value)}
+                  label="ઉ.વ.આ."
                   placeholder="ઉ.વ.આ."
-                  className="w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-2 text-sm sm:text-base focus:border-yellow-500 focus:outline-none text-black bg-white"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs sm:text-sm font-medium text-black">રહેવાસી</label>
+                <RequiredLabel className="mb-1 block text-xs sm:text-sm font-medium text-black">રહેવાસી</RequiredLabel>
                 <input
                   type="text"
                   value={formData.applicantResident}
                   onChange={(e) => handleInputChange('applicantResident', e.target.value)}
+                  onKeyDown={handleGujaratiInput}
+                  onPaste={handleGujaratiPaste}
                   placeholder="રહેવાસી"
+                  required
                   className="w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-2 text-sm sm:text-base focus:border-yellow-500 focus:outline-none text-black bg-white"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs sm:text-sm font-medium text-black">તાલુકો:</label>
+                <RequiredLabel className="mb-1 block text-xs sm:text-sm font-medium text-black">તાલુકો:</RequiredLabel>
                 <input
                   type="text"
                   value={formData.applicantTaluko}
                   onChange={(e) => handleInputChange('applicantTaluko', e.target.value)}
+                  onKeyDown={handleGujaratiInput}
+                  onPaste={handleGujaratiPaste}
                   placeholder="તાલુકો"
+                  required
                   className="w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-2 text-sm sm:text-base focus:border-yellow-500 focus:outline-none text-black bg-white"
                 />
               </div>
@@ -265,7 +292,10 @@ export default function MaranPage() {
                 type="text"
                 value={formData.relationToDeceased}
                 onChange={(e) => handleInputChange('relationToDeceased', e.target.value)}
+                onKeyDown={handleGujaratiInput}
+                onPaste={handleGujaratiPaste}
                 placeholder="સબંધ"
+                required
                 className="rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
               />
               <span>થાય. તેઓનું</span>
@@ -273,54 +303,81 @@ export default function MaranPage() {
                 type="text"
                 value={formData.deceasedRelation}
                 onChange={(e) => handleInputChange('deceasedRelation', e.target.value)}
+                onKeyDown={handleGujaratiInput}
+                onPaste={handleGujaratiPaste}
                 placeholder="નામ"
+                required
                 className="rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
               />
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="mb-1 block text-sm font-medium text-black">મુકામે</label>
+                <RequiredLabel className="mb-1 block text-sm font-medium text-black">મુકામે</RequiredLabel>
                 <input
                   type="text"
                   value={formData.deathPlace}
                   onChange={(e) => handleInputChange('deathPlace', e.target.value)}
+                  onKeyDown={handleGujaratiInput}
+                  onPaste={handleGujaratiPaste}
                   placeholder="મુકામે"
+                  required
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-yellow-500 focus:outline-none text-black bg-white"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-black">તારીખ</label>
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={formData.deathDate}
-                    onChange={(e) => handleInputChange('deathDate', e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-yellow-500 focus:outline-none text-black bg-white"
-                  />
-                  <CalendarIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <label className="mb-1 block text-sm font-medium text-black">તારીખ</label>
+                    <select
+                      value={formData.deathDateType}
+                      onChange={(e) => handleInputChange('deathDateType', e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
+                    >
+                      <option value="tarikh">તારીખ</option>
+                      <option value="aashre">આશરે</option>
+                    </select>
+                  </div>
+                  <div className="flex-1">
+                    {formData.deathDateType === 'tarikh' ? (
+                      <DatePicker
+                        value={formData.deathDate}
+                        onChange={(value) => handleInputChange('deathDate', value)}
+                        className="w-full"
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        value={formData.deathAashre}
+                        onChange={(e) => handleInputChange('deathAashre', e.target.value)}
+                        onKeyDown={handleGujaratiInput}
+                        onPaste={handleGujaratiPaste}
+                        placeholder="આશરે"
+                        required
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
             <p className="mt-2">ના રોજ અવસાન થયેલું છે.</p>
             <div className="flex flex-wrap items-center gap-2">
-              <input 
-                type="checkbox" 
-                className="h-4 w-4" 
-              />
               <span>ના કામે તેમના પેઢીનામાની જરૂર</span>
               <input
                 type="text"
                 value={formData.pedhinamuPurpose}
                 onChange={(e) => handleInputChange('pedhinamuPurpose', e.target.value)}
+                onKeyDown={handleGujaratiInput}
+                onPaste={handleGujaratiPaste}
                 placeholder="કામ"
+                required
                 className="rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
               />
               <span>હોઇ પેઢીનામું મેળવવા માટે તા.</span>
-              <input
-                type="date"
+              <DatePicker
                 value={formData.pedhinamuDate}
-                onChange={(e) => handleInputChange('pedhinamuDate', e.target.value)}
-                className="rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
+                onChange={(value) => handleInputChange('pedhinamuDate', value)}
+                className="w-auto"
               />
               <span>ના રોજ અરજી કરેલી છે. તે સંદર્ભે આજ રોજ લખાવું છૂ કે, ગુજરનારના વારસદારો જાહેર કરતું પેઢીનામું નીચે પ્રમાણે છે. જે હકીક્ત છે.</span>
             </div>
@@ -330,10 +387,11 @@ export default function MaranPage() {
         {/* Location Fields */}
         <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <label className="mb-1 block text-xs sm:text-sm font-medium text-black">મોજે ?</label>
+            <RequiredLabel className="mb-1 block text-xs sm:text-sm font-medium text-black">મોજે ?</RequiredLabel>
             <select
               value={formData.moje}
               onChange={(e) => handleInputChange('moje', e.target.value)}
+              required
               className="w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-2 text-sm sm:text-base focus:border-yellow-500 focus:outline-none text-black bg-white"
             >
               <option value="">મોજે પસંદ કરો</option>
@@ -345,22 +403,28 @@ export default function MaranPage() {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs sm:text-sm font-medium text-black">તાલુકો :</label>
+            <RequiredLabel className="mb-1 block text-xs sm:text-sm font-medium text-black">તાલુકો :</RequiredLabel>
             <input
               type="text"
               value={formData.taluko}
               onChange={(e) => handleInputChange('taluko', e.target.value)}
+              onKeyDown={handleGujaratiInput}
+              onPaste={handleGujaratiPaste}
               placeholder="તાલુકો"
+              required
               className="w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-2 text-sm sm:text-base focus:border-yellow-500 focus:outline-none text-black bg-white"
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs sm:text-sm font-medium text-black">જીલ્લો :</label>
+            <RequiredLabel className="mb-1 block text-xs sm:text-sm font-medium text-black">જીલ્લો :</RequiredLabel>
             <input
               type="text"
               value={formData.jillo}
               onChange={(e) => handleInputChange('jillo', e.target.value)}
+              onKeyDown={handleGujaratiInput}
+              onPaste={handleGujaratiPaste}
               placeholder="જીલ્લો"
+              required
               className="w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-2 text-sm sm:text-base focus:border-yellow-500 focus:outline-none text-black bg-white"
             />
           </div>
@@ -369,7 +433,7 @@ export default function MaranPage() {
         {/* Family Tree */}
         <div className="rounded-lg border border-gray-300 bg-white p-2 sm:p-4">
           <h3 className="mb-3 sm:mb-4 text-base sm:text-lg font-semibold text-black">પેઢીનામું</h3>
-          <FamilyTree members={familyTree} onChange={setFamilyTree} showBirthDeath={true} />
+          <HierarchicalTree members={familyTree} onChange={setFamilyTree} />
         </div>
 
         {/* Declaration Section */}
@@ -381,59 +445,59 @@ export default function MaranPage() {
             <p className="leading-relaxed">
               ઉપર મુજબનું પેઢીનામું, જવાબ મારી શુદ્ધ બુદ્ધિથી, અકકલ હોશિયારીથી, કોઇપણ જાતના દાબ-દબાણ, લોભ-લાલચ સિવાયનો લખાવ્યા મુજબનો સાચો અને ખરો છે. જે મે વાંચી, સમજી, સાંભળી વિચારીને સહી કરેલ છે. જે બરાબર છે.
             </p>
-            <p className="leading-relaxed">
+            <div className="leading-relaxed">
               ઉપર પ્રમાણેનું પેઢીનામું અમો આ કામના અરજદારના રૂબરૂ જવાબ, તા.
-              <input
-                type="date"
+              <DatePicker
                 value={formData.applicationDate}
-                onChange={(e) => handleInputChange('applicationDate', e.target.value)}
-                className="mx-1 sm:mx-2 rounded-lg border border-gray-300 px-1 sm:px-2 py-1 text-xs sm:text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
+                onChange={(value) => handleInputChange('applicationDate', value)}
+                className="mx-1 sm:mx-2 inline-block"
               />
               ના સોગંદનામા,રજુ કરેલ સાઘનિક તથા પંચોના લખાવ્યા મુજબનું તૈયાર કરી આપેલ છે. જેમાં તલાટીશ્રી જવાબદાર નથી.
-            </p>
+            </div>
           </div>
 
           {/* Signature/Photo Area */}
           <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-4">
             <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1 block text-sm font-medium text-black">સ્થળ:</label>
+                <RequiredLabel className="mb-1 block text-sm font-medium text-black">સ્થળ:</RequiredLabel>
                 <input
                   type="text"
                   value={formData.place}
                   onChange={(e) => handleInputChange('place', e.target.value)}
+                  onKeyDown={handleGujaratiInput}
+                  onPaste={handleGujaratiPaste}
                   placeholder="સ્થળ"
+                  required
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-yellow-500 focus:outline-none text-black bg-white"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-black">તારીખ:</label>
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => handleInputChange('date', e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-yellow-500 focus:outline-none text-black bg-white"
-                  />
-                  <CalendarIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                </div>
+                <DatePicker
+                  value={formData.date}
+                  onChange={(value) => handleInputChange('date', value)}
+                  label="તારીખ:"
+                />
               </div>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-black">રૂબરૂ</label>
+              <RequiredLabel className="mb-2 block text-sm font-medium text-black">રૂબરૂ</RequiredLabel>
               <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
                 {[1, 2, 3].map((num) => (
                   <input
                     key={num}
                     type="text"
                     placeholder={`${num}`}
+                    onKeyDown={handleGujaratiInput}
+                    onPaste={handleGujaratiPaste}
+                    required
                     className="rounded-lg border border-gray-300 px-3 py-2 focus:border-yellow-500 focus:outline-none text-black bg-white"
                   />
                 ))}
               </div>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-black">પંચો ની સહી</label>
+              <RequiredLabel className="mb-2 block text-sm font-medium text-black">પંચો ની સહી</RequiredLabel>
               <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
                 {formData.panchSignatures.map((sig, index) => (
                   <input
@@ -441,37 +505,47 @@ export default function MaranPage() {
                     type="text"
                     value={sig}
                     onChange={(e) => {
+                      const filteredValue = filterGujaratiOnly(e.target.value);
                       const newSigs = [...formData.panchSignatures];
-                      newSigs[index] = e.target.value;
+                      newSigs[index] = filteredValue;
                       setFormData((prev) => ({ ...prev, panchSignatures: newSigs }));
                     }}
+                    onKeyDown={handleGujaratiInput}
+                    onPaste={handleGujaratiPaste}
                     placeholder={`${index + 1}`}
+                    required
                     className="rounded-lg border border-gray-300 px-3 py-2 focus:border-yellow-500 focus:outline-none text-black bg-white"
                   />
                 ))}
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-black">
+              <RequiredLabel className="mb-1 block text-sm font-medium text-black">
                 લખાવનારની સહી
-              </label>
+              </RequiredLabel>
               <input
                 type="text"
                 value={formData.declarantSignature}
                 onChange={(e) => handleInputChange('declarantSignature', e.target.value)}
+                onKeyDown={handleGujaratiInput}
+                onPaste={handleGujaratiPaste}
                 placeholder="લખાવનારની સહી"
+                required
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-yellow-500 focus:outline-none text-black bg-white"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs sm:text-sm font-medium text-black">
+              <RequiredLabel className="mb-1 block text-xs sm:text-sm font-medium text-black">
                 અંગુઠાનું નિશાન
-              </label>
+              </RequiredLabel>
               <input
                 type="text"
                 value={formData.thumbImpression}
                 onChange={(e) => handleInputChange('thumbImpression', e.target.value)}
+                onKeyDown={handleGujaratiInput}
+                onPaste={handleGujaratiPaste}
                 placeholder="અંગુઠાનું નિશાન"
+                required
                 className="w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-2 text-sm sm:text-base focus:border-yellow-500 focus:outline-none text-black bg-white"
               />
             </div>
@@ -484,14 +558,17 @@ export default function MaranPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-black">
+                <RequiredLabel className="mb-1 block text-sm font-medium text-black">
                   આધાર કાડૅ નંબર :
-                </label>
+                </RequiredLabel>
                 <input
                   type="text"
                   value={formData.aadharNumber}
                   onChange={(e) => handleInputChange('aadharNumber', e.target.value)}
+                  onKeyDown={handleGujaratiInput}
+                  onPaste={handleGujaratiPaste}
                   placeholder="આધાર કાર્ડ નંબર"
+                  required
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-yellow-500 focus:outline-none text-black bg-white"
                 />
               </div>
@@ -509,10 +586,11 @@ export default function MaranPage() {
           </div>
           <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div>
-              <label className="mb-1 block text-sm font-medium text-black">મોજે</label>
+              <RequiredLabel className="mb-1 block text-sm font-medium text-black">મોજે</RequiredLabel>
               <select
                 value={formData.panchMoje}
                 onChange={(e) => handleInputChange('panchMoje', e.target.value)}
+                required
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-yellow-500 focus:outline-none text-black bg-white"
               >
                 <option value="">મોજે પસંદ કરો</option>
@@ -524,22 +602,28 @@ export default function MaranPage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-black">તાલુકો</label>
+              <RequiredLabel className="mb-1 block text-sm font-medium text-black">તાલુકો</RequiredLabel>
               <input
                 type="text"
                 value={formData.panchTaluko}
                 onChange={(e) => handleInputChange('panchTaluko', e.target.value)}
+                onKeyDown={handleGujaratiInput}
+                onPaste={handleGujaratiPaste}
                 placeholder="તાલુકો"
+                required
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-yellow-500 focus:outline-none text-black bg-white"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-black">જીલ્લો</label>
+              <RequiredLabel className="mb-1 block text-sm font-medium text-black">જીલ્લો</RequiredLabel>
               <input
                 type="text"
                 value={formData.panchJillo}
                 onChange={(e) => handleInputChange('panchJillo', e.target.value)}
+                onKeyDown={handleGujaratiInput}
+                onPaste={handleGujaratiPaste}
                 placeholder="જીલ્લો"
+                required
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-yellow-500 focus:outline-none text-black bg-white"
               />
             </div>
@@ -580,12 +664,15 @@ export default function MaranPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-black">રહેવાસી</label>
+                    <RequiredLabel className="mb-1 block text-xs font-medium text-black">રહેવાસી</RequiredLabel>
                     <input
                       type="text"
                       value={panch.resident}
                       onChange={(e) => handlePanchChange(index, 'resident', e.target.value)}
+                      onKeyDown={handleGujaratiInput}
+                      onPaste={handleGujaratiPaste}
                       placeholder="રહેવાસી"
+                      required
                       className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
                     />
                   </div>
@@ -642,18 +729,22 @@ export default function MaranPage() {
                 <h4 className="mb-2 sm:mb-3 text-xs sm:text-sm font-semibold text-black">પંચ-{index + 1} )</h4>
                 <div className="grid grid-cols-1 gap-2 sm:gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   <div>
-                    <label className="mb-1 block text-xs sm:text-sm font-medium text-black">
+                    <RequiredLabel className="mb-1 block text-xs sm:text-sm font-medium text-black">
                       અંગુઠાનું નિશાન
-                    </label>
+                    </RequiredLabel>
                     <input
                       type="text"
                       value={formData.panchThumbImpressions[index] || ''}
                       onChange={(e) => {
+                        const filteredValue = filterGujaratiOnly(e.target.value);
                         const newThumbs = [...formData.panchThumbImpressions];
-                        newThumbs[index] = e.target.value;
+                        newThumbs[index] = filteredValue;
                         setFormData(prev => ({ ...prev, panchThumbImpressions: newThumbs }));
                       }}
+                      onKeyDown={handleGujaratiInput}
+                      onPaste={handleGujaratiPaste}
                       placeholder="અંગુઠાનું નિશાન"
+                      required
                       className="w-full rounded border border-gray-300 px-2 py-1.5 text-xs sm:text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
                     />
                   </div>
@@ -665,14 +756,17 @@ export default function MaranPage() {
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs sm:text-sm font-medium text-black">
+                    <RequiredLabel className="mb-1 block text-xs sm:text-sm font-medium text-black">
                       આધારકાર્ડ નં:
-                    </label>
+                    </RequiredLabel>
                     <input
                       type="text"
                       value={panch.aadhar}
                       onChange={(e) => handlePanchChange(index, 'aadhar', e.target.value)}
+                      onKeyDown={handleGujaratiInput}
+                      onPaste={handleGujaratiPaste}
                       placeholder="આધારકાર્ડ નં."
+                      required
                       className="w-full rounded border border-gray-300 px-2 py-1.5 text-xs sm:text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
                     />
                   </div>
@@ -694,42 +788,44 @@ export default function MaranPage() {
           <div className="space-y-4 text-sm text-black">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mb-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-black">સ્થળ:-</label>
+                <RequiredLabel className="mb-1 block text-sm font-medium text-black">સ્થળ:-</RequiredLabel>
                 <input
                   type="text"
                   value={formData.finalPlace}
                   onChange={(e) => handleInputChange('finalPlace', e.target.value)}
+                  onKeyDown={handleGujaratiInput}
+                  onPaste={handleGujaratiPaste}
                   placeholder="સ્થળ"
+                  required
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-yellow-500 focus:outline-none text-black bg-white"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-black">તારીખ:-</label>
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={formData.finalDate}
-                    onChange={(e) => handleInputChange('finalDate', e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-yellow-500 focus:outline-none text-black bg-white"
-                  />
-                  <CalendarIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                </div>
+                <DatePicker
+                  value={formData.finalDate}
+                  onChange={(value) => handleInputChange('finalDate', value)}
+                  label="તારીખ:-"
+                />
               </div>
             </div>
-            <p>
-              આ પ્રમાણેનું પેઢીનામું અમો આ કામના અરજદારના રૂબરૂ જવાબ, તથા તારીખ
-            </p>
             <div className="flex flex-wrap items-center gap-2">
-              <input 
-                type="checkbox" 
-                className="h-4 w-4" 
+              <span>આ પ્રમાણેનું પેઢીનામું અમો આ કામના અરજદારના રૂબરૂ જવાબ, તથા તારીખ</span>
+              <DatePicker
+                value={formData.applicationDate}
+                onChange={(value) => handleInputChange('applicationDate', value)}
+                className="w-auto"
               />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
               <span>ના રોજ નોટરી શ્રી</span>
               <input
                 type="text"
                 value={formData.notaryName}
                 onChange={(e) => handleInputChange('notaryName', e.target.value)}
+                onKeyDown={handleGujaratiInput}
+                onPaste={handleGujaratiPaste}
                 placeholder="નોટરી નામ"
+                required
                 className="rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
               />
               <span>રજી નં.</span>
@@ -737,7 +833,10 @@ export default function MaranPage() {
                 type="text"
                 value={formData.regNo}
                 onChange={(e) => handleInputChange('regNo', e.target.value)}
+                onKeyDown={handleGujaratiInput}
+                onPaste={handleGujaratiPaste}
                 placeholder="રજી નં."
+                required
                 className="rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
               />
               <span>ના સિ.નં.</span>
@@ -745,24 +844,20 @@ export default function MaranPage() {
                 type="text"
                 value={formData.serialNo}
                 onChange={(e) => handleInputChange('serialNo', e.target.value)}
+                onKeyDown={handleGujaratiInput}
+                onPaste={handleGujaratiPaste}
                 placeholder="ના સિ.નં."
+                required
                 className="rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
               />
               <span>તારીખ</span>
-              <input
-                type="date"
+              <DatePicker
                 value={formData.notaryDate}
-                onChange={(e) => handleInputChange('notaryDate', e.target.value)}
-                className="rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
+                onChange={(value) => handleInputChange('notaryDate', value)}
+                className="w-auto"
               />
             </div>
             <div className="flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                checked={formData.affidavitCheckbox}
-                onChange={(e) => setFormData(prev => ({ ...prev, affidavitCheckbox: e.target.checked }))}
-                className="h-4 w-4" 
-              />
               <span>
                 થી કરેલ સોગંદનામું/સ્વઘોષણા તથા પંચોના લખાવ્યા મુજબ તૈયાર કરેલ છે
               </span>
@@ -776,7 +871,10 @@ export default function MaranPage() {
                 type="text"
                 value={formData.pedhinamuPurposeFinal}
                 onChange={(e) => handleInputChange('pedhinamuPurposeFinal', e.target.value)}
+                onKeyDown={handleGujaratiInput}
+                onPaste={handleGujaratiPaste}
                 placeholder="ના કામે"
+                required
                 className="rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
               />
               <span>ના કામે ઉપયોગ કરી શકાશે.</span>
@@ -786,24 +884,30 @@ export default function MaranPage() {
             </p>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mt-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-black">
+                <RequiredLabel className="mb-1 block text-sm font-medium text-black">
                   અરજદાર ની સહિ,
-                </label>
+                </RequiredLabel>
                 <input
                   type="text"
                   value={formData.applicantSignature}
                   onChange={(e) => handleInputChange('applicantSignature', e.target.value)}
+                  onKeyDown={handleGujaratiInput}
+                  onPaste={handleGujaratiPaste}
                   placeholder="અરજદાર ની સહિ"
+                  required
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-yellow-500 focus:outline-none text-black bg-white"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-black">રૂબરૂ</label>
+                <RequiredLabel className="mb-1 block text-sm font-medium text-black">રૂબરૂ</RequiredLabel>
                 <input
                   type="text"
                   value={formData.inPerson}
                   onChange={(e) => handleInputChange('inPerson', e.target.value)}
+                  onKeyDown={handleGujaratiInput}
+                  onPaste={handleGujaratiPaste}
                   placeholder="રૂબરૂ"
+                  required
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-yellow-500 focus:outline-none text-black bg-white"
                 />
               </div>

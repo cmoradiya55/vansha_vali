@@ -67,22 +67,38 @@ export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { isAuthenticated, logout, user } = useAuth();
+  const { isAuthenticated, logout, user, loading } = useAuth();
 
   const isHayati = pathname === '/hayati';
   const isMaran = pathname === '/maran';
 
   // Redirect to login if not authenticated (except on login page)
   useEffect(() => {
-    if (!isAuthenticated && pathname !== '/login') {
+    if (!loading && !isAuthenticated && pathname !== '/login') {
       router.push('/login');
     }
-  }, [isAuthenticated, pathname, router]);
+  }, [isAuthenticated, loading, pathname, router]);
 
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      router.push('/login');
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-yellow-50">
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-yellow-600 border-t-transparent"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return null;
@@ -169,7 +185,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* Overlay for mobile */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}

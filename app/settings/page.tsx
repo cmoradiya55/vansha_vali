@@ -101,14 +101,17 @@ export default function SettingsPage() {
   const [errors, setErrors] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mock user data - in production, this would come from an API
+  // User data from Firestore
   const userData = {
-    fullName: 'kim kathodara',
+    fullName: user?.gamname || 'kim kathodara',
     status: 'Active',
     role: 'user',
     phone: '9428142414',
     email: user?.email || 'gpkathodara@gmail.com',
-    villages: ['ભાવનગર', 'કીમ/કઠોદરા'],
+    gamname: user?.gamname || '',
+    taluka: user?.taluka || '',
+    district: user?.district || '',
+    villages: user?.gamname ? [user.gamname] : ['ભાવનગર', 'કીમ/કઠોદરા'],
   };
 
   useEffect(() => {
@@ -216,18 +219,28 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* VILLAGES Section */}
+        {/* LOCATION Section */}
         <div className="space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400">VILLAGES</h2>
-          <div className="flex flex-wrap gap-3 rounded-lg bg-white p-6 shadow-sm">
-            {userData.villages.map((village, index) => (
-              <button
-                key={index}
-                className="rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-yellow-500 hover:bg-yellow-50 hover:text-yellow-600"
-              >
-                {village}
-              </button>
-            ))}
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400">LOCATION</h2>
+          <div className="space-y-3 rounded-lg bg-white p-6 shadow-sm">
+            {userData.gamname && (
+              <div>
+                <span className="text-sm text-gray-500">Gam Name (Village): </span>
+                <span className="text-sm font-medium text-gray-700">{userData.gamname}</span>
+              </div>
+            )}
+            {userData.taluka && (
+              <div>
+                <span className="text-sm text-gray-500">Taluka: </span>
+                <span className="text-sm font-medium text-gray-700">{userData.taluka}</span>
+              </div>
+            )}
+            {userData.district && (
+              <div>
+                <span className="text-sm text-gray-500">District: </span>
+                <span className="text-sm font-medium text-gray-700">{userData.district}</span>
+              </div>
+            )}
           </div>
         </div>
 

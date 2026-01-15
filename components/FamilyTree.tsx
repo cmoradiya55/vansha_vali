@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
+import DatePicker from './DatePicker';
 
 // Simple SVG Icon Components for website
 const AddIcon = ({ className }: { className?: string }) => (
@@ -51,6 +52,8 @@ interface FamilyMember {
   hayat?: string; // હયાત (Alive/Existing) field
   birth?: string;
   death?: string;
+  deathDateType?: string; // 'tarikh' or 'aashre'
+  deathAashre?: string; // approximate date text
   children: FamilyMember[];
 }
 
@@ -63,7 +66,7 @@ interface FamilyTreeProps {
 }
 
 const MAX_CHILDREN_PER_PARENT = 10; // Default: max 10 children per parent
-const MAX_GENERATIONS_HAYATI = 3; // Hayati: 3 generations (root → children → grandchildren)
+const MAX_GENERATIONS_HAYATI = 4; // Hayati: 4 generations (root → children → grandchildren → great-grandchildren)
 const MAX_GENERATIONS_MARAN = 4; // Maran: 4 generations (root → children → grandchildren → great-grandchildren)
 
 export default function FamilyTree({ 
@@ -85,6 +88,8 @@ export default function FamilyTree({
         hayat: '',
         birth: '',
         death: '',
+        deathDateType: 'tarikh',
+        deathAashre: '',
         children: [],
       };
       onChange([defaultMember]);
@@ -196,6 +201,8 @@ export default function FamilyTree({
       hayat: '',
       birth: '',
       death: '',
+      deathDateType: 'tarikh',
+      deathAashre: '',
       children: [],
     };
 
@@ -270,52 +277,78 @@ export default function FamilyTree({
             </div>
           )}
           
-          {/* First Row: સબંધ (dropdown), હયાત (dropdown), ઉંમર (text) - for hayati */}
-          {!showBirthDeath ? (
-            <div className="mb-1 flex gap-0.5 sm:gap-1">
-              <div className="flex-1 min-w-0">
-                <select
-                  value={member.relation || ''}
-                  onChange={(e) => updateMember(member.id, 'relation', e.target.value)}
-                  className="w-full border border-gray-300 px-0.5 sm:px-1 py-0.5 text-[8px] sm:text-[9px] focus:border-yellow-500 focus:outline-none text-black bg-white"
-                >
-                  <option value="">સબંધ</option>
-                  <option value="પિતા">પિતા</option>
-                  <option value="માતા">માતા</option>
-                  <option value="પુત્ર">પુત્ર</option>
-                  <option value="પુત્રી">પુત્રી</option>
-                  <option value="પત્ની">પત્ની</option>
-                  <option value="પતિ">પતિ</option>
-                  <option value="ભાઈ">ભાઈ</option>
-                  <option value="બહેન">બહેન</option>
-                  <option value="પિતામહ">પિતામહ</option>
-                  <option value="માતામહ">માતામહ</option>
-                  <option value="પૌત્ર">પૌત્ર</option>
-                  <option value="પૌત્રી">પૌત્રી</option>
-                </select>
+          {/* First Row: સબંધ (dropdown), હયાત (dropdown), તારીખ/આશરે (dropdown), તારીખ/ઉંમર - for hayati */}
+          {!showBirthDeath ? (() => {
+            const status = member.hayat || '';
+            const isHayat = status === 'હયાત';
+            const deathDateType = member.deathDateType || 'tarikh';
+            return (
+              <div className={`mb-1 flex gap-0.5 sm:gap-1 ${isHayat ? '' : ''}`}>
+                <div className="flex-1 min-w-0">
+                  <input
+                    type="text"
+                    placeholder="સબંધ"
+                    value={member.relation || ''}
+                    onChange={(e) => updateMember(member.id, 'relation', e.target.value)}
+                    className="w-full border border-gray-300 px-0.5 sm:px-1 py-0.5 text-[8px] sm:text-[9px] focus:border-yellow-500 focus:outline-none text-black bg-white"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <select
+                    value={status}
+                    onChange={(e) => updateMember(member.id, 'hayat', e.target.value)}
+                    className="w-full border border-gray-300 px-0.5 sm:px-1 py-0.5 text-[8px] sm:text-[9px] focus:border-yellow-500 focus:outline-none text-black bg-white"
+                  >
+                    <option value="">હયાત</option>
+                    <option value="હયાત">હયાત</option>
+                    <option value="મરણ">મરણ</option>
+                  </select>
+                </div>
+                {!isHayat && (
+                  <div className="flex-1 min-w-0">
+                    <select
+                      value={deathDateType}
+                      onChange={(e) => updateMember(member.id, 'deathDateType', e.target.value)}
+                      className="w-full border border-gray-300 px-0.5 sm:px-1 py-0.5 text-[8px] sm:text-[9px] focus:border-yellow-500 focus:outline-none text-black bg-white"
+                    >
+                      <option value="tarikh">તારીખ</option>
+                      <option value="aashre">આશરે</option>
+                    </select>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  {isHayat ? (
+                    <input
+                      type="text"
+                      placeholder="ઉંમર"
+                      value={member.age || ''}
+                      onChange={(e) => updateMember(member.id, 'age', e.target.value)}
+                      className="w-full border border-gray-300 px-0.5 sm:px-1 py-0.5 text-[8px] sm:text-[9px] focus:border-yellow-500 focus:outline-none text-black bg-white"
+                    />
+                  ) : (
+                    <div className="relative">
+                      {deathDateType === 'tarikh' ? (
+                        <DatePicker
+                          value={member.death || ''}
+                          onChange={(value) => updateMember(member.id, 'death', value)}
+                          className="w-full"
+                          size="small"
+                        />
+                      ) : (
+                        <input
+                          type="text"
+                          placeholder="ઉંમર"
+                          value={member.age || ''}
+                          onChange={(e) => updateMember(member.id, 'age', e.target.value)}
+                          className="w-full border border-gray-300 px-0.5 sm:px-1 py-0.5 text-[8px] sm:text-[9px] focus:border-yellow-500 focus:outline-none text-black bg-white"
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <select
-                  value={member.hayat || ''}
-                  onChange={(e) => updateMember(member.id, 'hayat', e.target.value)}
-                  className="w-full border border-gray-300 px-0.5 sm:px-1 py-0.5 text-[8px] sm:text-[9px] focus:border-yellow-500 focus:outline-none text-black bg-white"
-                >
-                  <option value="">હયાત</option>
-                  <option value="હયાત">હયાત</option>
-                  <option value="મરણ">મરણ</option>
-                </select>
-              </div>
-              <div className="flex-1 min-w-0">
-                <input
-                  type="text"
-                  placeholder="ઉંમર"
-                  value={member.age || ''}
-                  onChange={(e) => updateMember(member.id, 'age', e.target.value)}
-                  className="w-full border border-gray-300 px-0.5 sm:px-1 py-0.5 text-[8px] sm:text-[9px] focus:border-yellow-500 focus:outline-none text-black bg-white"
-                />
-              </div>
-            </div>
-          ) : (
+            );
+          })() : (
             <div className="mb-1 flex gap-0.5">             
               <div className="flex-1 min-w-0 max-w-[30%]">
                 <input
@@ -458,13 +491,13 @@ export default function FamilyTree({
             </span>
           </div>
           <div className="text-xs text-black">
-            {showBirthDeath ? 'મરણ: 4 પેઢી સુધી' : 'હયાતી: 3 પેઢી સુધી'}
+            {showBirthDeath ? 'મરણ: 4 પેઢી સુધી' : 'હયાતી: 4 પેઢી સુધી'}
           </div>
         </div>
       </div>
       
-      {/* Scrollable Container */}
-      <div className="w-full overflow-auto max-h-[60vh] sm:max-h-[70vh] border-2 border-gray-200 rounded-lg p-2 sm:p-4 bg-gray-50">
+      {/* Scrollable Container - Horizontal scroll only */}
+      <div className="w-full overflow-x-auto overflow-y-visible border-2 border-gray-200 rounded-lg p-2 sm:p-4 bg-gray-50">
         <div className="flex flex-col items-center min-w-max">
           <div className="flex flex-wrap justify-center gap-6 w-full">
             {members.map((member) => renderMember(member, 0))}
