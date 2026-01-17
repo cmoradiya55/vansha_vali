@@ -157,7 +157,7 @@ export default function LoginPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-yellow-50 to-yellow-100">
+      <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-yellow-600 border-t-transparent"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
@@ -167,33 +167,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-yellow-50 to-yellow-100 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-white px-4">
       <div className="w-full max-w-md">
         <div className="rounded-2xl bg-white p-8 shadow-2xl">
-          {/* Logo/Title */}
-          <div className="mb-8 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-600">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="h-8 w-8 text-white"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                />
-              </svg>
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900">Vanshavali</h1>
-            <p className="mt-2 text-gray-600">Pedhinamu Certificate System</p>
-          </div>
+          
 
           {/* Toggle between Login and Signup */}
-          <div className="mb-6 flex rounded-lg bg-gray-100 p-1">
+          {/* <div className="mb-6 flex rounded-lg bg-gray-100 p-1">
             <button
               type="button"
               onClick={() => setIsSignup(false)}
@@ -216,7 +196,7 @@ export default function LoginPage() {
             >
               Sign Up
             </button>
-          </div>
+          </div> */}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -393,16 +373,6 @@ export default function LoginPage() {
               }
             </button>
           </form>
-
-          {/* Info */}
-          <div className="mt-6 rounded-lg bg-yellow-50 p-4">
-            <p className="text-sm text-yellow-800">
-              <strong>Note:</strong> {isSignup 
-                ? 'Create a new account to access the system. All fields are required for registration.'
-                : 'Login with your registered email and password. Password must be at least 6 characters.'
-              }
-            </p>
-          </div>
         </div>
       </div>
       

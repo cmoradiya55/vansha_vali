@@ -168,7 +168,6 @@ export default function SettingsPage() {
   }
 
   return (
-    <Layout>
       <div className="mx-auto max-w-4xl space-y-8 p-6">
         {/* ABOUT Section */}
         <div className="space-y-4">
@@ -319,21 +318,6 @@ export default function SettingsPage() {
           </form>
         </div>
       </div>
-
-      {/* Toast Container */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
-    </Layout>
   );
 }
 

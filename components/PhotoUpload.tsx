@@ -9,6 +9,8 @@ interface PhotoUploadProps {
   label: string;
   className?: string;
   accept?: string;
+  width?: string;
+  height?: string;
 }
 
 const CameraIcon = ({ className }: { className?: string }) => (
@@ -64,7 +66,7 @@ const PlusIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-export default function PhotoUpload({ value, onChange, label, className = '', accept = 'image/*' }: PhotoUploadProps) {
+export default function PhotoUpload({ value, onChange, label, className = '', accept = 'image/*', width = '200px', height = '200px' }: PhotoUploadProps) {
   const [imagePreview, setImagePreview] = useState<string>(value || '');
   const [showDialog, setShowDialog] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -181,21 +183,15 @@ export default function PhotoUpload({ value, onChange, label, className = '', ac
 
   return (
     <div className={className} ref={containerRef}>
-      <label className="mb-1 block text-xs sm:text-sm font-medium text-black">{label}</label>
       
       {imagePreview ? (
         <div className="relative flex justify-center">
-          <div className="relative w-32 h-32 sm:w-40 sm:h-40 border-4 border-blue-600 bg-white overflow-hidden shadow-lg" style={{ aspectRatio: '1/1' }}>
+          <div className={`relative w-32 h-32 sm:w-[${width}] sm:h-[${height}] border-4 border-blue-600 bg-white overflow-hidden shadow-lg` }style={{ aspectRatio: '1/1' }}>
             <img
               src={imagePreview}
               alt={label}
               className="w-full h-full object-cover"
             />
-            {/* Passport photo corner indicators */}
-            <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-blue-600"></div>
-            <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-blue-600"></div>
-            <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-blue-600"></div>
-            <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-blue-600"></div>
           </div>
           <button
             type="button"
@@ -209,22 +205,16 @@ export default function PhotoUpload({ value, onChange, label, className = '', ac
       ) : (
         <div className="relative flex justify-center">
           <div 
-            className="relative w-32 h-32 sm:w-40 sm:h-40 border-4 border-dashed border-blue-400 bg-gray-50 flex items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors shadow-md"
+            className={`relative w-32 h-32 sm:w-[${width}] sm:h-[${height}] border-2 border-blue-400 bg-gray-50 flex items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors shadow-md`}
             style={{ aspectRatio: '1/1' }}
             onClick={handlePlusClick}
-          >
-            {/* Passport photo corner indicators */}
-            <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-blue-400"></div>
-            <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-blue-400"></div>
-            <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-blue-400"></div>
-            <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-blue-400"></div>
-            
+          > 
             <div className="flex flex-col items-center gap-1 sm:gap-2 z-10">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-yellow-500 text-white rounded-full flex items-center justify-center hover:bg-yellow-600 transition-colors shadow-md">
                 <PlusIcon className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
               <p className="text-[9px] sm:text-[10px] text-gray-600 font-medium text-center px-1">
-                {isMobile ? 'ફોટો ઉમેરો' : 'Choose File'}
+                {label}
               </p>
             </div>
           </div>

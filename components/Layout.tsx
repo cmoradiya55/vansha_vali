@@ -23,19 +23,6 @@ const MenuIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const PersonIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className={className}
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-  </svg>
-);
-
 const SettingsIcon = ({ className }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -69,9 +56,9 @@ export default function Layout({ children }: LayoutProps) {
   const router = useRouter();
   const { isAuthenticated, logout, user, loading } = useAuth();
 
-  const isHayati = pathname === '/hayati';
-  const isMaran = pathname === '/maran';
-
+  const isHayati = pathname.includes('/hayati');
+  const isMaran = pathname.includes('/maran');
+  
   // Redirect to login if not authenticated (except on login page)
   useEffect(() => {
     if (!loading && !isAuthenticated && pathname !== '/login') {
@@ -110,7 +97,7 @@ export default function Layout({ children }: LayoutProps) {
       <aside
         className={`${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } fixed inset-y-0 left-0 z-50 w-64 bg-yellow-900 text-white transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}
+        } fixed inset-y-0 left-0 z-50 w-[70px] bg-yellow-900 text-white transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}
       >
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between p-3 sm:p-4 lg:hidden">
@@ -123,60 +110,37 @@ export default function Layout({ children }: LayoutProps) {
               <MenuIcon className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
           </div>
-          <nav className="flex-1 space-y-2 p-3 sm:p-4">
+          <nav className="flex-1 space-y-2">
+            <div className="flex flex-col gap-2 h-[50px]"> </div>
             <button
               onClick={() => {
                 router.push('/hayati');
                 setSidebarOpen(false);
               }}
-              className={`flex w-full items-center gap-2 sm:gap-3 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-left transition-all ${
+              className={`flex w-full items-center gap-2 sm:gap-3 px-2 py-2 text-left transition-all relative ${
                 isHayati
-                  ? 'bg-green-600 text-white shadow-lg'
-                  : 'text-yellow-100 hover:bg-yellow-800 hover:text-white'
+                  ? 'bg-yellow-100 text-yellow-800 shadow-lg border-l-4 border-l-yellow-500'
+                  : 'text-yellow-100 hover:bg-yellow-800 hover:text-white border-l-4 border-l-transparent'
               }`}
             >
-              <div className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full flex-shrink-0 ${
-                isHayati ? 'bg-white' : 'bg-yellow-700'
-              }`}>
-                <PersonIcon className={`h-4 w-4 sm:h-5 sm:w-5 ${isHayati ? 'text-green-600' : 'text-white'}`} />
-              </div>
               <div className="flex-1 min-w-0">
-                <span className="block font-semibold text-sm sm:text-base">હયાતી</span>
-                <span className={`text-[10px] sm:text-xs ${isHayati ? 'text-green-100' : 'text-yellow-200'}`}>
-                  Living Pedhinamu
-                </span>
+                <span className={`block text-sm sm:text-base font-semibold`}>હયાતી</span>
               </div>
-              {isHayati && (
-                <div className="h-2 w-2 rounded-full bg-white flex-shrink-0"></div>
-              )}
             </button>
             <button
               onClick={() => {
                 router.push('/maran');
                 setSidebarOpen(false);
               }}
-              className={`flex w-full items-center gap-2 sm:gap-3 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-left transition-all ${
+              className={`flex w-full items-center gap-2 sm:gap-3 px-2 py-2 text-left transition-all relative ${
                 isMaran
-                  ? 'bg-red-600 text-white shadow-lg'
-                  : 'text-yellow-100 hover:bg-yellow-800 hover:text-white'
+                  ? 'bg-yellow-100 text-yellow-800 shadow-lg border-l-4 border-l-yellow-500'
+                  : 'text-yellow-100 hover:bg-yellow-800 hover:text-white border-l-4 border-l-transparent'
               }`}
             >
-              <div className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full flex-shrink-0 ${
-                isMaran ? 'bg-white' : 'bg-yellow-700'
-              }`}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`h-4 w-4 sm:h-5 sm:w-5 ${isMaran ? 'text-red-600' : 'text-white'}`}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                </svg>
-              </div>
               <div className="flex-1 min-w-0">
-                <span className="block font-semibold text-sm sm:text-base">મરણ</span>
-                <span className={`text-[10px] sm:text-xs ${isMaran ? 'text-red-100' : 'text-yellow-200'}`}>
-                  Death Pedhinamu
-                </span>
+                <span className={`block text-sm sm:text-base font-semibold`}>મરણ</span>
               </div>
-              {isMaran && (
-                <div className="h-2 w-2 rounded-full bg-white flex-shrink-0"></div>
-              )}
             </button>
           </nav>
         </div>

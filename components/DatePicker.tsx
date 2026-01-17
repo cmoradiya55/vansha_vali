@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -11,6 +11,30 @@ interface DatePickerComponentProps {
   className?: string;
   label?: string;
   size?: 'small' | 'default';
+}
+
+// Gujarati digits mapping: 0-9 to ૦-૯
+const gujaratiDigits: { [key: string]: string } = {
+  '0': '૦',
+  '1': '૧',
+  '2': '૨',
+  '3': '૩',
+  '4': '૪',
+  '5': '૫',
+  '6': '૬',
+  '7': '૭',
+  '8': '૮',
+  '9': '૯',
+};
+
+/**
+ * Converts English digits to Gujarati digits
+ */
+function convertToGujaratiDigits(text: string): string {
+  return text
+    .split('')
+    .map((char) => gujaratiDigits[char] || char)
+    .join('');
 }
 
 const CalendarIcon = ({ className }: { className?: string }) => (
@@ -65,13 +89,34 @@ export default function DatePickerComponent({
     }
   };
 
+  // Custom input component to display Gujarati digits
+  const CustomInput = React.forwardRef<HTMLInputElement, { value?: string; onClick?: () => void }>(
+    ({ value: inputValue, onClick }, ref) => {
+      // Convert the input value (formatted as DD/MM/YYYY in English digits) to Gujarati digits
+      // react-datepicker formats the date according to dateFormat prop and passes it here
+      const gujaratiValue = inputValue ? convertToGujaratiDigits(inputValue) : '';
+      
+      return (
+        <input
+          ref={ref}
+          type="text"
+          value={gujaratiValue}
+          onClick={onClick}
+          readOnly
+          placeholder={placeholder}
+          className={`w-full rounded-lg border border-gray-300 focus:border-yellow-500 focus:outline-none text-black bg-white text-xs sm:text-sm ${
+            size === 'small' 
+              ? 'px-1.5 py-1 pr-8 text-[10px] min-h-[28px]' 
+              : 'px-2 sm:px-3 py-2 pr-10 text-sm sm:text-base'
+          } ${className}`}
+        />
+      );
+    }
+  );
+  CustomInput.displayName = 'CustomInput';
+
   return (
     <div className="relative w-full">
-      {label && (
-        <label className="mb-1 block text-xs sm:text-sm font-medium text-black">
-          {label}
-        </label>
-      )}
       <div className="relative">
          <DatePicker
            ref={datePickerRef}
@@ -79,11 +124,7 @@ export default function DatePickerComponent({
            onChange={handleDateChange}
            dateFormat="dd/MM/yyyy"
            placeholderText={placeholder}
-           className={`w-full rounded-lg border border-gray-300 focus:border-yellow-500 focus:outline-none text-black bg-white ${
-             size === 'small' 
-               ? 'px-1.5 py-1 pr-8 text-[10px] min-h-[28px]' 
-               : 'px-2 sm:px-3 py-2 pr-10 text-sm sm:text-base'
-           } ${className}`}
+           customInput={<CustomInput />}
            calendarClassName="!font-sans"
            wrapperClassName="w-full"
            showPopperArrow={false}
