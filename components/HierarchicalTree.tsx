@@ -248,7 +248,7 @@ export default function HierarchicalTree({ members, onChange }: HierarchicalTree
         )}
         
         <div 
-          className={`relative mb-1 border-2 bg-white p-1 sm:p-1.5 shadow-sm min-w-[160px] sm:min-w-[200px] max-w-[180px] sm:max-w-[220px]
+          className={`relative mb-1 border-2 bg-white p-1 sm:p-1.5 shadow-sm min-w-[160px] sm:min-w-[200px] max-w-[300px] sm:max-w-[350px]
             ${
             isRoot 
               ? 'border-yellow-500' 
@@ -256,11 +256,11 @@ export default function HierarchicalTree({ members, onChange }: HierarchicalTree
           }`}
         >
           {/* Generation Badge for Root */}
-          {isRoot && (
+          {/* {isRoot && (
             <div className="absolute -top-1.5 left-2 bg-yellow-500 text-white text-[8px] sm:text-[9px] font-semibold px-1 py-0.5">
               {generationLabel}
             </div>
-          )}
+          )} */}
           
           {/* First Row */}
           <div className={`mb-1 flex gap-0.5 sm:gap-1 ${isHayat ? '' : ''}`}>
@@ -316,8 +316,9 @@ export default function HierarchicalTree({ members, onChange }: HierarchicalTree
                     <DatePicker
                       value={member.death || ''}
                       onChange={(value) => updateMember(member.id, 'death', value, parentId)}
-                      className="w-full"
+                      className="w-full border border-gray-300 px-0.5 sm:px-1 py-0.5 text-[8px] sm:text-[9px] focus:border-yellow-500 focus:outline-none text-black bg-white"
                       size="small"
+                      placeholder="તારીખ"
                     />
                   ) : (
                     <input
@@ -356,21 +357,21 @@ export default function HierarchicalTree({ members, onChange }: HierarchicalTree
           {canAddChildren && canAddMoreChildren && (
             <button
               onClick={() => addChild(member.id)}
-              className="flex items-center gap-0.5 bg-yellow-500 px-1 sm:px-1.5 py-0.5 text-[9px] sm:text-[10px] font-medium text-white transition-colors hover:bg-yellow-600"
+              className="flex items-center gap-0.5  px-1 sm:px-1.5 py-0.5 text-[9px] sm:text-[10px] font-medium text-white transition-colors cursor-pointer"
               title={`Add ${level === 0 ? 'Child' : level === 1 ? 'Grandchild' : 'Great-grandchild'}`}
             >
-              <AddIcon className="h-2 w-2 sm:h-2.5 sm:w-2.5" />
-              <span className="text-[9px] sm:text-[10px]">+</span>
+              <AddIcon className="h-3 w-3 sm:h-4 sm:w-4 text-black"/>
+              {/* <span className="text-[9px] sm:text-[10px]">+</span> */}
             </button>
           )}
           {/* Hide delete button for root members (mukhya pedhi) */}
           {!isRoot && (
             <button
               onClick={() => removeMember(member.id, parentId)}
-              className="flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center bg-red-500 text-white hover:bg-red-600 transition-colors"
+              className="flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center text-red-700 transition-colors cursor-pointer"
               title="Delete"
             >
-              <DeleteIcon className="h-2 w-2 sm:h-2.5 sm:w-2.5" />
+              <DeleteIcon className="h-3 w-3 sm:h-4 sm:w-4"/>
             </button>
           )}
         </div>
@@ -421,7 +422,7 @@ export default function HierarchicalTree({ members, onChange }: HierarchicalTree
                       </div>
                     </>
                   )}
-                  {renderMember(child, false, member.id, level + 1, member.name || 'અજ્ઞાત')}
+                  {renderMember(child, false, member.id, level + 1, member.name )}
                 </div>
               ))}
             </div>
@@ -434,7 +435,7 @@ export default function HierarchicalTree({ members, onChange }: HierarchicalTree
   return (
     <div className="w-full p-2 sm:p-4">
       {/* Limits Display */}
-      <div className="mb-3 sm:mb-4 rounded-lg bg-yellow-50 px-2 sm:px-4 py-2 sm:py-3">
+      {/* <div className="mb-3 sm:mb-4 rounded-lg bg-yellow-50 px-2 sm:px-4 py-2 sm:py-3">
         <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-2 sm:gap-4">
           <div className="flex flex-col gap-1">
             <span className="text-xs sm:text-sm font-medium text-black">
@@ -448,7 +449,7 @@ export default function HierarchicalTree({ members, onChange }: HierarchicalTree
             મરણ: 4 પેઢી સુધી
           </div>
         </div>
-      </div>
+      </div> */}
       
       {/* Scrollable Container - Horizontal scroll only */}
       <div className="w-full overflow-x-auto overflow-y-visible border-2 border-gray-200 rounded-lg p-2 sm:p-4 bg-gray-50">
@@ -480,11 +481,11 @@ export default function HierarchicalTree({ members, onChange }: HierarchicalTree
       </div>
       
       {/* Scroll Hint */}
-      {members.length > 0 && (
+      {/* {members.length > 0 && (
         <div className="mt-2 text-center text-[10px] sm:text-xs text-gray-500">
           💡 પરિવારનું વંશવેલો જોવા માટે સ્ક્રોલ કરો (Scroll to view family tree)
         </div>
-      )}
+      )} */}
     </div>
   );
 }

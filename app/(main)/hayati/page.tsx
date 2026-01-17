@@ -5,36 +5,9 @@ import FamilyTree from '@/components/FamilyTree';
 import PhotoUpload from '@/components/PhotoUpload';
 import DatePicker from '@/components/DatePicker';
 import RequiredLabel from '@/components/RequiredLabel';
-import { generatePDF } from '@/utils/pdfGenerator';
-import { generatePDFFromHTML } from '@/utils/pdfGeneratorHtml2Canvas';
 import { handleGujaratiInput, handleGujaratiPaste, filterGujaratiOnly } from '@/utils/gujaratiInputValidator';
-// Simple SVG Icon Components for website
-
-const PrintIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className={className}
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 19.5 4.5 17.25m0 0L6.75 15M4.5 17.25H19.5m-15 0v-1.5m15 1.5v-1.5m0-12.75h-15m15 0v12.75m-15 0h15" />
-  </svg>
-);
-
-const DeleteIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className={className}
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-  </svg>
-);
+import { generatePedhinamaPDF } from '@/utils/pdfGeneratorHtml2Canvas';
+import DeleteIcon from '@/public/custom-icon/all-icons/DeleteIcon';
 
 interface FamilyMember {
   id: string;
@@ -186,32 +159,18 @@ export default function HayatiPage() {
     });
   };
 
-  const handlePrint = () => {
-    // Use html2canvas to capture the form and generate PDF
-    generatePDFFromHTML('hayati-form-container', 'hayati_pedhinamu.pdf', {
-      format: 'legal',
-      orientation: 'landscape',
-      quality: 1,
-      scale: 2,
-    });
-  };
-
-  const flattenFamilyTree = (members: FamilyMember[]): any[] => {
-    const result: any[] = [];
-    const traverse = (member: FamilyMember) => {
-      result.push({
-        name: member.name,
-        age: member.age,
-        relation: member.relation,
-      });
-      member.children.forEach(traverse);
-    };
-    members.forEach(traverse);
-    return result;
-  };
+  // const handlePrint = () => {
+  //   // Use html2canvas to capture the form and generate PDF
+  //   generatePDFFromHTML('hayati-form-container', 'hayati_pedhinamu.pdf', {
+  //     format: 'legal',
+  //     orientation: 'landscape',
+  //     quality: 1,
+  //     scale: 2,
+  //   });
+  // };
 
   return (
-    <div id="hayati-form-container" className="mx-auto space-y-4 sm:space-y-6 px-2 sm:px-4">
+    <div id="pedhinama" className="mx-auto space-y-4 sm:space-y-6 px-2 sm:px-4"> {/* Removed hayati-form-container id */}
       {/* Title */}
       <div className="text-center mb-2 sm:mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-black">હયાતી</h1>
@@ -279,9 +238,9 @@ export default function HayatiPage() {
 
       {/* Applicant Declaration */}
       <div className="rounded-lg border border-gray-300 bg-white p-3 sm:p-4">
-        <div className="mb-3 sm:mb-4 rounded-lg bg-yellow-100 px-3 sm:px-4 py-2">
+        {/* <div className="mb-3 sm:mb-4 rounded-lg bg-yellow-100 px-3 sm:px-4 py-2">
           <h3 className="text-base sm:text-lg font-semibold text-yellow-800">અરજદારની જાહેરાત</h3>
-        </div>
+        </div> */}
         <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-black">
           <p className='leading-[40px]'> હું નીચે સહિ કરનાર (અરજદાર) આજરોજ તલાટી કમ મંત્રી </p>
           <div className="flex flex-col">
@@ -321,7 +280,7 @@ export default function HayatiPage() {
           <div className="flex flex-col">
             <div className="font-medium mx-auto -mb-1">{formData.jillo}</div>
             <div className="w-[100px] border-b-1 border-black mt-1"></div>
-          </div> 
+          </div>
           <p className='leading-[30px]'> હયાત છું અને આ પેઢીનામું </p>
           <div className="flex flex-col items-center w-full sm:min-w-[200px] sm:max-w-[300px]">
             <input
@@ -342,7 +301,7 @@ export default function HayatiPage() {
               value={formData.pedhinamuDate}
               onChange={(value) => handleInputChange('pedhinamuDate', value)}
             />
-          </div> 
+          </div>
           <p className="leading-[30px]"> ના રોજ અમોએ અરજી કરેલી છે, તે અરજી અન્વયે આજરોજ પંચો રૂબરૂ હાજર રહિ લખાવું છે કે, મારા સીધીલીટી ના ઉપરોકત દર્શાવ્યા સિવાયના અન્ય કોઈ વારસદરો બાકી રહેતા નથી. તેમ છતા ભવિષ્યમાં કોઈ વારસદરો નિકળે તો તેની તમામ જવાબદારી મારી પોતાની રહેશે. અને જો પેઢીનામું ખોટું ઠરે તો તેમાં અમે અરજદાર તથા પંચો જવાબદાર રહેશું અમોએ ખોટા વારસદરો બતાવેલ નથી તથા સાચા વારસદરો બાકી રાખેલ નથી. ખોટું પેઢીનામું લખાવવું એ ફોજદારી ગુનો બને છે જેની અમો ને જાણ છે. આ પેઢીનામાં બાબતે રૂબરૂ માં સહી કરનાર તલાટી કમ મંત્રી જવાબદાર નથી.</p>
           <p className="leading-[40px]"> ઉપર મુજબનું પેઢીનામું અમો પંચોના લખાવ્યા મુજબનું શુધ્ધ બુધ્ધિથી અકકલ હોશિયારીથી કોઈપણ જાતના દાબ-દબાણ લોભ-લાલચ સિવાયનું લખાવ્યા મુજબનું સાચું અને ખરું છે, જે અમોએ વાંચી સમજી સાંભળી વિચારીને નીચે સહી કરી આપેલ છે. જે મને કબૂલ મંજૂર છે.</p>
         </div>
@@ -557,39 +516,40 @@ export default function HayatiPage() {
                   <DeleteIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
               )}
-                <div>
-                  <PhotoUpload
-                    value={panch.photo || ''}
-                    onChange={(value) => handlePanchPhotoChange(index, value)}
-                    label="પંચનો ફોટો"
-                    width="200px"
-                    height="200px"
-                  />
-                </div>
-                <div className='flex flex-col gap-2'>
-                  <p className="mb-1 block text-xs sm:text-sm text-black">
-                    અંગુઠાનું નિશાન
-                  </p>
-                  <div className="w-[200px] h-[70px] rounded-lg border-1 border-black mt-1"></div>
-                  <h4 className="mb-2 sm:mb-3 text-xs sm:text-sm font-semibold text-black">પંચ-{index + 1}</h4>
-                  <div className="w-[200px] border-b-1 border-black mt-1"></div>
-                  <RequiredLabel className="mb-1 block text-xs sm:text-sm text-black">
-                    આધારકાર્ડ નં:
-                  </RequiredLabel>
-                  <input
-                    type="text"
-                    value={panch.aadhar}
-                    onChange={(e) => handlePanchChange(index, 'aadhar', e.target.value)}
-                    onKeyDown={handleGujaratiInput}
-                    onPaste={handleGujaratiPaste}
-                    placeholder="આધારકાર્ડ નં."
-                    required
-                    className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
-                  />
-                </div>
+              <div>
+                <PhotoUpload
+                  value={panch.photo || ''}
+                  onChange={(value) => handlePanchPhotoChange(index, value)}
+                  label="પંચનો ફોટો"
+                  className="w-[200px] h-[200px]"
+                // width="200px"
+                // height="200px"
+                />
               </div>
+              <div className='flex flex-col gap-2'>
+                <p className="mb-1 block text-xs sm:text-sm text-black">
+                  અંગુઠાનું નિશાન
+                </p>
+                <div className="w-[200px] h-[70px] rounded-lg border-1 border-black mt-1"></div>
+                <h4 className="mb-2 sm:mb-3 text-xs sm:text-sm font-semibold text-black">પંચ-{index + 1}</h4>
+                <div className="w-[200px] border-b-1 border-black mt-1"></div>
+                <RequiredLabel className="mb-1 block text-xs sm:text-sm text-black">
+                  આધારકાર્ડ નં:
+                </RequiredLabel>
+                <input
+                  type="text"
+                  value={panch.aadhar}
+                  onChange={(e) => handlePanchChange(index, 'aadhar', e.target.value)}
+                  onKeyDown={handleGujaratiInput}
+                  onPaste={handleGujaratiPaste}
+                  placeholder="આધારકાર્ડ નં."
+                  required
+                  className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
+                />
+              </div>
+            </div>
           ))}
-          {formData.panchDetails.length < 5 && 
+          {formData.panchDetails.length < 5 &&
             <button
               onClick={addPanch}
               className="flex items-center gap-2 rounded-lg bg-yellow-500 px-3 sm:px-4 py-2 text-sm sm:text-base text-white hover:bg-yellow-600"
@@ -600,7 +560,7 @@ export default function HayatiPage() {
           }
         </div>
 
-
+        {/* 
         <div className="mt-3 sm:mt-4 grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2">
           <div>
             <RequiredLabel className="mb-1 block text-sm font-medium text-black">સ્થળ</RequiredLabel>
@@ -615,6 +575,13 @@ export default function HayatiPage() {
               className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-yellow-500 focus:outline-none text-black bg-white"
             />
           </div>
+          <div className='flex items-center gap-2 text-black'>
+            <p>સ્થળ:-</p>
+            <div className="flex flex-col">
+              <div className="font-medium mx-auto -mb-1">{formData.moje}</div>
+              <div className="w-[100px] border-b-1 border-black mt-1"></div>
+            </div>
+          </div>
           <div>
             <DatePicker
               value={formData.finalDate}
@@ -622,14 +589,14 @@ export default function HayatiPage() {
               label="તારીખ"
             />
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Final Section */}
       <div className="rounded-lg border border-gray-300 bg-white p-3 sm:p-4">
         <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm text-black">
-          <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 mb-3 sm:mb-4">
-            <div>
+          <div className="flex flex-wrap gap-3 sm:gap-4 mb-3 sm:mb-4">
+            {/* <div>
               <RequiredLabel className="mb-1 block text-xs sm:text-sm font-medium text-black">સ્થળ:-</RequiredLabel>
               <input
                 type="text"
@@ -641,26 +608,56 @@ export default function HayatiPage() {
                 required
                 className="w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-2 text-sm sm:text-base focus:border-yellow-500 focus:outline-none text-black bg-white"
               />
+            </div> */}
+            <div className='flex items-center gap-2 text-black'>
+              <p>સ્થળ:-</p>
+              <div className="flex flex-col">
+                <div className="font-medium mx-auto -mb-1">{formData.moje}</div>
+                <div className="w-[100px] border-b-1 border-black mt-1"></div>
+              </div>
             </div>
-            <div>
+            {/* <div>
               <DatePicker
                 value={formData.finalDate}
                 onChange={(value) => handleInputChange('finalDate', value)}
                 label="તારીખ:-"
               />
+            </div> */}
+            <div className='flex items-center gap-2 text-black mt-3'>
+              <p>તારીખ:-</p>
+              <div className="w-[150px] h-[50px]">
+                <DatePicker
+                  value={formData.finalDate}
+                  onChange={(value) => handleInputChange('finalDate', value)}
+                  label="તારીખ:-"
+                />
+              </div>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm">
             <span>આ પ્રમાણેનું પેઢીનામું અમો આ કામના અરજદારના રૂબરૂ જવાબ, તથા તારીખ</span>
-            <DatePicker
-              value={formData.applicationDate}
-              onChange={(value) => handleInputChange('applicationDate', value)}
-              className="w-full sm:w-auto"
-            />
-          </div>
-          <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2">
-            <span className="flex-1">ના રોજ નોટરી શ્રી</span>
-            <input
+            <div className="w-[150px] h-[50px]">
+              <DatePicker
+                value={formData.applicationDate}
+                onChange={(value) => handleInputChange('applicationDate', value)}
+                label="તારીખ:-"
+              />
+            </div>
+            <span>ના રોજ નોટરી શ્રી</span>
+            <div className="flex flex-col items-center w-full min-w-[280px] max-w-[280px]">
+              <input
+                type="text"
+                value={formData.notaryName}
+                onChange={(e) => handleInputChange('notaryName', e.target.value)}
+                onKeyDown={handleGujaratiInput}
+                onPaste={handleGujaratiPaste}
+                placeholder="નોટરી નામ"
+                required
+                className="w-full -mb-2 text-center text-black pb-1 text-xs sm:text-sm"
+              />
+              <div className="w-full border-b-1 border-black mt-1"></div>
+            </div>
+            {/* <input
               type="text"
               value={formData.notaryName}
               onChange={(e) => handleInputChange('notaryName', e.target.value)}
@@ -669,9 +666,22 @@ export default function HayatiPage() {
               placeholder="નોટરી નામ"
               required
               className="w-full sm:w-auto rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
-            />
+            /> */}
             <span>રજી નં.</span>
-            <input
+            <div className="flex flex-col items-center w-full min-w-[150px] max-w-[150px]">
+              <input
+                type="text"
+                value={formData.regNo}
+                onChange={(e) => handleInputChange('regNo', e.target.value)}
+                onKeyDown={handleGujaratiInput}
+                onPaste={handleGujaratiPaste}
+                placeholder="રજી નં."
+                required
+                className="w-full -mb-2 text-center text-black pb-1 text-xs sm:text-sm"
+              />
+              <div className="w-full border-b-1 border-black mt-1"></div>
+            </div>
+            {/* <input
               type="text"
               value={formData.regNo}
               onChange={(e) => handleInputChange('regNo', e.target.value)}
@@ -680,9 +690,9 @@ export default function HayatiPage() {
               placeholder="રજી નં."
               required
               className="w-full sm:w-auto rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
-            />
+            /> */}
             <span>ના સિ.નં.</span>
-            <input
+            {/* <input
               type="text"
               value={formData.serialNo}
               onChange={(e) => handleInputChange('serialNo', e.target.value)}
@@ -691,22 +701,30 @@ export default function HayatiPage() {
               placeholder="ના સિ.નં."
               required
               className="w-full sm:w-auto rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
-            />
+            /> */}
+            <div className="flex flex-col items-center w-full min-w-[150px] max-w-[150px]">
+              <input
+                type="text"
+                value={formData.serialNo}
+                onChange={(e) => handleInputChange('serialNo', e.target.value)}
+                onKeyDown={handleGujaratiInput}
+                onPaste={handleGujaratiPaste}
+                placeholder="ના સિ.નં."
+                required
+                className="w-full -mb-2 text-center text-black pb-1 text-xs sm:text-sm"
+              />
+              <div className="w-full border-b-1 border-black mt-1"></div>
+            </div>
             <span>તારીખ</span>
-            <DatePicker
-              value={formData.notaryDate}
-              onChange={(value) => handleInputChange('notaryDate', value)}
-              className="w-full sm:w-auto"
-            />
+            <div className="w-[150px] h-[50px]">
+              <DatePicker
+                value={formData.notaryDate}
+                onChange={(value) => handleInputChange('notaryDate', value)}
+                label="તારીખ:-"
+              />
+            </div>
+            <span className="text-xs sm:text-sm">થી કરેલ સોગંદનામું/સ્વઘોષણા તથા પંચોના લખાવ્યા મુજબ તૈયાર કરેલ છે. વારસદારોની ખોટા ખરા અંગે સબંધિત તલાટી કમ મંત્રીશ્રી જવાબદાર નથી.</span>
           </div>
-          <div className="flex items-start sm:items-center gap-2">
-            <span className="flex-1">
-              થી કરેલ સોગંદનામું/સ્વઘોષણા તથા પંચોના લખાવ્યા મુજબ તૈયાર કરેલ છે
-            </span>
-          </div>
-          <p className="font-medium text-xs sm:text-sm">
-            વારસદારોની ખોટા ખરા અંગે સબંધિત તલાટી કમ મંત્રીશ્રી જવાબદાર નથી.
-          </p>
           <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2">
             <span>આ પેઢીનામું</span>
             <input
@@ -724,12 +742,12 @@ export default function HayatiPage() {
           <p className="text-xs sm:text-sm leading-relaxed">
             સદર પેઢીનામું વારસાઇ પ્રમાણપત્ર કે પ્રોબ્રેટ નથી પેઢીનામાંમા માત્ર રૂબરૂ જવાબ પંચોનું પંચનામું સામેલ છે વારસદારો અંગે સાંધનિક પુરાવાની ખાત્રી અલગથી કરવાની રહેશે, આ પેઢીનામાંમા દર્શાવેલા વારસદારો અંગે કોઈ વિવાદ થશે તો કોર્ટનું વારસાઈ સર્ટીફીકેટ આખરી ગણાશે.
           </p>
-          <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 mt-3 sm:mt-4">
-            <div>
-              <RequiredLabel className="mb-1 block text-xs sm:text-sm font-medium text-black">
-                અરજદાર ની સહિ.
-              </RequiredLabel>
-              <input
+          <div className="flex justify-end gap-4 mt-3 sm:mt-4">
+            <div className="w-full sm:w-auto min-w-[200px]">અરજદાર ની સહિ.
+              {/* <RequiredLabel className="mb-1 block text-xs sm:text-sm font-medium text-black pt-4">
+                
+              </RequiredLabel> */}
+              {/* <input
                 type="text"
                 value={formData.applicantSignature}
                 onChange={(e) => handleInputChange('applicantSignature', e.target.value)}
@@ -738,11 +756,24 @@ export default function HayatiPage() {
                 placeholder="અરજદાર ની સહિ"
                 required
                 className="w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-2 text-sm sm:text-base focus:border-yellow-500 focus:outline-none text-black bg-white"
-              />
+              /> */}
+              <div className="flex flex-col items-center w-full min-w-[200px] max-w-[300px] pt-10">
+                <input
+                  type="text"
+                  value={formData.applicantSignature}
+                  onChange={(e) => handleInputChange('applicantName', e.target.value)}
+                  onKeyDown={handleGujaratiInput}
+                  onPaste={handleGujaratiPaste}
+                  placeholder="અરજદાર ની સહિ"
+                  required
+                  className="w-full -mb-2 text-center text-black pb-1 text-xs sm:text-sm"
+                />
+                <div className="w-full border-b-1 border-black mt-1"></div>
+              </div>
             </div>
-            <div>
-              <RequiredLabel className="mb-1 block text-xs sm:text-sm font-medium text-black">રૂબરૂ</RequiredLabel>
-              <input
+            <div className="w-full sm:w-auto min-w-[200px]">રૂબરૂ
+              {/* <RequiredLabel className="mb-1 block text-xs sm:text-sm font-medium text-black">રૂબરૂ</RequiredLabel> */}
+              {/* <input
                 type="text"
                 value={formData.inPerson}
                 onChange={(e) => handleInputChange('inPerson', e.target.value)}
@@ -751,7 +782,7 @@ export default function HayatiPage() {
                 placeholder="રૂબરૂ"
                 required
                 className="w-full rounded-lg border border-gray-300 px-2 sm:px-3 py-2 text-sm sm:text-base focus:border-yellow-500 focus:outline-none text-black bg-white"
-              />
+              /> */}
             </div>
           </div>
         </div>
@@ -760,11 +791,10 @@ export default function HayatiPage() {
       {/* Print Button */}
       <div className="flex justify-start pb-4 sm:pb-8">
         <button
-          onClick={handlePrint}
+          onClick={() => generatePedhinamaPDF("pedhinama")} 
           className="flex items-center gap-2 rounded-lg bg-yellow-600 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base text-white hover:bg-yellow-700"
         >
-          <PrintIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-          <span>પ્રિન્ટ</span>
+          <span>Download PDF</span>
         </button>
       </div>
     </div>
