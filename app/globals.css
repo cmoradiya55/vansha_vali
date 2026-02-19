@@ -54,3 +54,13 @@ html, body {
     display: none !important;
   }
 }
+
+/* 
+@font-face {
+  font-family: 'Gujarati';
+  src: url('/fonts/Shruti.ttf');
+}
+
+.pdf-root {
+  font-family: 'Gujarati';
+} */

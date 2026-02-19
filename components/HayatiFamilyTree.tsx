@@ -1,59 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { toast } from 'react-toastify';
 import DatePicker from './DatePicker';
-
-// Simple SVG Icon Components for website
-const AddIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className={className}
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-  </svg>
-);
-
-const CloseIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className={className}
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-  </svg>
-);
-
-const DeleteIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className={className}
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-  </svg>
-);
+import { handleGujaratiInput, handleGujaratiPaste } from '@/utils/gujaratiInputValidator';
+import AddIcon from '@/public/custom-icon/all-icons/AddIcon';
+import DeleteIcon from '@/public/custom-icon/all-icons/DeleteIcon';
 
 interface FamilyMember {
   id: string;
   name: string;
   age?: string;
   relation?: string;
-  hayat?: string; // હયાત (Alive/Existing) field
+  hayat?: string; 
   birth?: string;
   death?: string;
-  deathDateType?: string; // 'tarikh' or 'aashre'
-  deathAashre?: string; // approximate date text
+  deathDateType?: string; 
+  deathAashre?: string; 
   children: FamilyMember[];
 }
 
@@ -61,41 +24,23 @@ interface FamilyTreeProps {
   members: FamilyMember[];
   onChange: (members: FamilyMember[]) => void;
   showBirthDeath?: boolean;
-  maxChildrenPerParent?: number; // Max children per parent
-  maxGenerations?: number; // Max generational depth
+  maxChildrenPerParent?: number; 
+  maxGenerations?: number; 
 }
 
-const MAX_CHILDREN_PER_PARENT = 10; // Default: max 10 children per parent
-const MAX_GENERATIONS_HAYATI = 4; // Hayati: 4 generations (root → children → grandchildren → great-grandchildren)
-const MAX_GENERATIONS_MARAN = 4; // Maran: 4 generations (root → children → grandchildren → great-grandchildren)
+const MAX_CHILDREN_PER_PARENT = 10; 
+const MAX_GENERATIONS_HAYATI = 4; 
+const MAX_GENERATIONS_MARAN = 4; 
 
-export default function FamilyTree({ 
-  members, 
-  onChange, 
-  showBirthDeath = false, 
+const FamilyTree = React.memo(function FamilyTree({
+  members,
+  onChange,
+  showBirthDeath = false,
   maxChildrenPerParent = MAX_CHILDREN_PER_PARENT,
   maxGenerations = showBirthDeath ? MAX_GENERATIONS_MARAN : MAX_GENERATIONS_HAYATI
 }: FamilyTreeProps) {
-  
-  // Initialize with default root member if empty
-  React.useEffect(() => {
-    if (members.length === 0) {
-      const defaultMember: FamilyMember = {
-        id: Date.now().toString(),
-        name: '',
-        age: '',
-        relation: '',
-        hayat: '',
-        birth: '',
-        death: '',
-        deathDateType: 'tarikh',
-        deathAashre: '',
-        children: [],
-      };
-      onChange([defaultMember]);
-    }
-  }, []); // Only run once on mount
-  
+
+
   // Get current generation level of a member
   const getGenerationLevel = (member: FamilyMember, members: FamilyMember[], level: number = 0): number => {
     for (const m of members) {
@@ -109,7 +54,7 @@ export default function FamilyTree({
   // Get parent's generation level
   const getParentGenerationLevel = (parentId: string | null, members: FamilyMember[], level: number = 0): number => {
     if (parentId === null) return -1; // Root level
-    
+
     for (const m of members) {
       if (m.id === parentId) return level;
       const found = getParentGenerationLevel(parentId, m.children, level + 1);
@@ -118,14 +63,21 @@ export default function FamilyTree({
     return -1;
   };
 
+  // Unique ID generator using React ref (pure)
+  const memberIdCounter = React.useRef(0);
+  const getUniqueMemberId = () => {
+    memberIdCounter.current += 1;
+    return `member-${memberIdCounter.current}`;
+  };
+
   const addMember = (parentId: string | null) => {
     // Check generational depth limit
     const parentLevel = getParentGenerationLevel(parentId, members);
     const newMemberLevel = parentLevel + 1;
-    
+
     // Check children limit per parent (for both root and non-root)
     let parent: FamilyMember | null = null;
-    
+
     if (parentId === null) {
       // Root level - check total root members
       if (members.length >= maxChildrenPerParent) {
@@ -149,14 +101,14 @@ export default function FamilyTree({
         }
         return null;
       };
-      
+
       parent = findParent(members);
-      
+
       if (parent && parent.children.length >= maxChildrenPerParent) {
         // Determine the correct message based on the new member's level
         let levelText = '';
         let gujaratiText = '';
-        
+
         if (newMemberLevel === 1) {
           levelText = 'children';
           gujaratiText = 'સંતાનો';
@@ -167,7 +119,7 @@ export default function FamilyTree({
           levelText = 'great-grandchildren';
           gujaratiText = 'પ્રપૌત્રો';
         }
-        
+
         toast.warning(`You can not add more ${levelText}! મહત્તમ ${maxChildrenPerParent} ${gujaratiText} ઉમેરી શકાય છે.`, {
           position: 'top-right',
           autoClose: 4000,
@@ -179,7 +131,7 @@ export default function FamilyTree({
         return;
       }
     }
-    
+
     // Check generational depth limit (after checking children limit)
     if (newMemberLevel >= maxGenerations) {
       toast.warning(`You can not add more grand children! મહત્તમ ${maxGenerations} પેઢી સુધી ઉમેરી શકાય છે.`, {
@@ -193,12 +145,13 @@ export default function FamilyTree({
       return;
     }
 
+    const newMemberId = getUniqueMemberId();
     const newMember: FamilyMember = {
-      id: Date.now().toString(),
+      id: newMemberId,
       name: '',
       age: '',
       relation: '',
-      hayat: '',
+      hayat: 'હયાત',
       birth: '',
       death: '',
       deathDateType: 'tarikh',
@@ -243,52 +196,36 @@ export default function FamilyTree({
     onChange(updateInTree(members));
   };
 
-  const renderMember = (member: FamilyMember, level: number = 0, parentName: string = '') => {
+  const renderMember = (member: FamilyMember, level: number = 0, parentName: string = '', isFirstChild: boolean = false, isLastChild: boolean = false, isMultipleChildren: boolean = false) => {
     const isRoot = level === 0;
     const canAddChildren = level < maxGenerations - 1;
     const childrenCount = member.children.length;
     const canAddMoreChildren = childrenCount < maxChildrenPerParent;
     
-    // Generation labels in Gujarati
-    const generationLabels = ['મુખ્ય', 'સંતાન', 'પૌત્ર', 'પ્રપૌત્ર'];
-    const generationLabel = generationLabels[level] || `પેઢી ${level + 1}`;
-    
     return (
-      <div key={member.id} className="flex flex-col items-center">
-        {/* Generation Label */}
-        {!isRoot && (
-          <div className="mb-1 text-[9px] sm:text-[10px] font-semibold text-yellow-600 bg-yellow-50 px-1 sm:px-1.5 py-0.5">
-            {generationLabel} {parentName ? `(${parentName} ના)` : ''}
-          </div>
-        )}
-        
-        <div 
-        className={`relative mb-1 border-2 bg-white p-1 sm:p-1.5 shadow-sm min-w-[160px] sm:min-w-[200px] max-w-[300px] sm:max-w-[350px]
-          ${
-          isRoot 
-            ? 'border-yellow-500' 
-            : 'border-gray-400'
-        }`}
+      <div key={member.id} className="flex flex-col items-center justify-center">
+        <div
+          className={`relative mb-1 border-2 bg-white p-1 sm:p-1.5 shadow-sm min-w-40 sm:min-w-50 max-w-75 sm:max-w-87.5
+          ${isRoot
+              ? 'border-yellow-500'
+              : 'border-gray-400'
+            }`}
         >
-          {/* Generation Badge for Root */}
-          {/* {isRoot && (
-            <div className="absolute -top-1.5 left-2 bg-yellow-500 text-white text-[8px] sm:text-[9px] font-semibold px-1 py-0.5">
-              {generationLabel}
-            </div>
-          )} */}
-          
+          {!isRoot && <div className='absolute w-0.5 h-5 bg-gray-400 -top-5 left-1/2 transform -translate-x-1/2'></div>}
           {/* First Row: સબંધ (dropdown), હયાત (dropdown), તારીખ/આશરે (dropdown), તારીખ/ઉંમર - for hayati */}
           {!showBirthDeath ? (() => {
-            const status = member.hayat || '';
+            const status = member.hayat || 'હયાત';
             const isHayat = status === 'હયાત';
             const deathDateType = member.deathDateType || 'tarikh';
             return (
-              <div className={`mb-1 flex gap-0.5 sm:gap-1 ${isHayat ? '' : ''}`}>
+              <div className={`mb-1 flex gap-0.5 sm:gap-1`}>
                 <div className="flex-1 min-w-0">
                   <input
                     type="text"
                     placeholder="સબંધ"
                     value={member.relation || ''}
+                    onKeyDown={handleGujaratiInput}
+                    onPaste={handleGujaratiPaste}
                     onChange={(e) => updateMember(member.id, 'relation', e.target.value)}
                     className="w-full border border-gray-300 px-0.5 sm:px-1 py-0.5 text-[8px] sm:text-[9px] focus:border-yellow-500 focus:outline-none text-black bg-white"
                   />
@@ -299,7 +236,6 @@ export default function FamilyTree({
                     onChange={(e) => updateMember(member.id, 'hayat', e.target.value)}
                     className="w-full border border-gray-300 px-0.5 sm:px-1 py-0.5 text-[8px] sm:text-[9px] focus:border-yellow-500 focus:outline-none text-black bg-white"
                   >
-                    {/* <option value="">હયાત</option> */}
                     <option value="હયાત">હયાત</option>
                     <option value="મરણ">મરણ</option>
                   </select>
@@ -328,14 +264,14 @@ export default function FamilyTree({
                   ) : (
                     <div className="relative">
                       {deathDateType === 'tarikh' ? (
-                        
+
                         <DatePicker
                           value={member.death || ''}
                           onChange={(value) => updateMember(member.id, 'death', value)}
                           className="w-full border border-gray-300 px-0.5 sm:px-1 py-0.5 text-[8px] sm:text-[9px] focus:border-yellow-500 focus:outline-none text-black bg-white"
                           size="small"
                           placeholder="તારીખ"
-                          
+
                         />
                       ) : (
                         <input
@@ -352,7 +288,7 @@ export default function FamilyTree({
               </div>
             );
           })() : (
-            <div className="mb-1 flex gap-0.5">             
+            <div className="mb-1 flex gap-0.5">
               <div className="flex-1 min-w-0 max-w-[30%]">
                 <input
                   type="text"
@@ -361,7 +297,7 @@ export default function FamilyTree({
                   onChange={(e) => updateMember(member.id, 'relation', e.target.value)}
                   className="w-full border border-gray-300 px-0.5 py-0.5 text-[7px] sm:text-[8px] focus:border-yellow-500 focus:outline-none text-black bg-white"
                 />
-              </div>             
+              </div>
               <div className="flex-1 min-w-0 max-w-[35%]">
                 <input
                   type="text"
@@ -370,7 +306,7 @@ export default function FamilyTree({
                   onChange={(e) => updateMember(member.id, 'birth', e.target.value)}
                   className="w-full border border-gray-300 px-0.5 py-0.5 text-[7px] sm:text-[8px] focus:border-yellow-500 focus:outline-none text-black bg-white"
                 />
-              </div>            
+              </div>
               <div className="flex-1 min-w-0 max-w-[35%]">
                 <input
                   type="text"
@@ -395,94 +331,62 @@ export default function FamilyTree({
           </div>
 
         </div>
-        
+
         {/* Add and Delete Icons - Same Line, Outside Card */}
-        <div className="flex items-center justify-center gap-1 mt-0.5">
+        <div className="flex items-center justify-center gap-1 mt-1">
           {canAddChildren && canAddMoreChildren && (
             <button
               onClick={() => addMember(member.id)}
               className="flex items-center gap-0.5  px-1 sm:px-1.5 py-0.5 text-[9px] sm:text-[10px] font-medium text-white transition-colors cursor-pointer"
               title={`Add ${level === 0 ? 'Child' : level === 1 ? 'Grandchild' : 'Great-grandchild'}`}
             >
-              <AddIcon className="h-3 w-3 sm:h-4 sm:w-4 text-black"/>
-              {/* <span className="text-[9px] sm:text-[10px]">+</span> */}
+              <AddIcon height="16" width="16" color="black" />
             </button>
           )}
-          {/* Hide delete button for root members (mukhya pedhi) */}
-          {/* {!isRoot && (
-            <button
-              onClick={() => removeMember(member.id)}
-              className="flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center bg-red-500 text-white hover:bg-red-600 transition-colors"
-              title="Delete"
-            >
-              <DeleteIcon className="h-2 w-2 sm:h-2.5 sm:w-2.5" />
-            </button>
-          )} */}
           {!isRoot && (
             <button
-            onClick={() => removeMember(member.id)}
+              onClick={() => removeMember(member.id)}
               className="flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center text-red-700 transition-colors cursor-pointer"
               title="Delete"
             >
-              <DeleteIcon className="h-3 w-3 sm:h-4 sm:w-4"/>
+              <DeleteIcon height="16" width="16" color="red" />
             </button>
           )}
         </div>
-        
+
         {/* Children */}
         {member.children.length > 0 && (
-          <div className="mt-3 sm:mt-4 flex flex-col items-center w-full relative">
-            {/* Vertical Line from Parent to Children */}
-            <div className="relative flex items-center justify-center w-full mb-2">
-              <div className="h-8 sm:h-10 w-1 sm:w-1.5 bg-gradient-to-b from-yellow-500 to-yellow-400 rounded-full shadow-sm"></div>
-              {/* Down Arrow */}
-              <div className="absolute top-6 sm:top-8 left-1/2 transform -translate-x-1/2 z-10">
-                <svg width="16" height="16" className="sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" 
-                // className="text-yellow-600 drop-shadow-sm"
-                >
-                  <path d="M12 18L6 12H9V6H15V12H18L12 18Z" fill="currentColor" stroke="white" strokeWidth="0.5"/>
-                </svg>
-              </div>
-            </div>
+          <div className="mt-6 flex flex-col items-center w-full relative">
+            {/* Vertical Line from Parent Card down */}
+            {/* <div className="w-0.5 h-8 bg-black"></div> */}
             
-            {/* Horizontal Line connecting all children (only if more than 1 child) */}
-            {member.children.length > 1 && (
-              <div className="relative w-full mb-2 flex justify-center">
-                <div 
-                  className="h-1 sm:h-1.5 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400 rounded-full shadow-sm relative"
-                  style={{
-                    width: `${Math.max(75, Math.min(95, (member.children.length - 1) * 18))}%`,
-                    minWidth: `${(member.children.length - 1) * 160}px`
-                  }}
-                >
-                  {/* Vertical connector from parent line */}
-                  <div className="absolute -top-3 sm:-top-4 left-1/2 transform -translate-x-1/2 h-3 sm:h-4 w-1 sm:w-1.5 bg-yellow-500 rounded-full"></div>
+            {member.children.length === 1 ? (
+              // Single child - just continue vertical line
+              <div className="flex flex-col items-center">
+                {renderMember(member.children[0], level + 1, member.name, true, true)}
+              </div>
+            ) : (
+              // Multiple children - T-shaped connector
+              <div className="relative w-full">
+                {/* Children positioned first to calculate positions */}
+                <div className="flex justify-center items-start gap-4 sm:gap-6 w-full relative">
+                  {member.children.map((child) => {
+                    const isFirstChild = child.id === member.children[0].id;
+                    const isLastChild = child.id === member.children[member.children.length - 1].id;
+                    const isMultipleChildren = member.children.length > 1;
+                    return(
+                    <div key={child.id} className="flex flex-col items-center relative">
+                      {/* Vertical line down to this child */}
+                      {(isFirstChild) && <div className='absolute h-0.5 bg-gray-400 -top-5 left-1/2' style={{width: `calc(50% + 100px)`}}></div>}
+                      {(isLastChild) && <div className='absolute h-0.5 bg-gray-400 -top-5 right-1/2' style={{width: `calc(50% + 100px)`}}></div>}
+                      {(!isFirstChild && !isLastChild) && <div className='absolute h-0.5 bg-gray-400 -top-5' style={{width: `calc(100% + 100px)`}}></div>}
+                      {renderMember(child, level + 1, member.name, isFirstChild, isLastChild, isMultipleChildren)}
+                    </div>
+                  )})}
+                  
                 </div>
               </div>
             )}
-            
-            {/* Children Container with proper connections */}
-            <div className="flex flex-wrap justify-center gap-2 sm:gap-4 w-full overflow-x-auto pb-2 relative">
-              {member.children.map((child, index) => (
-                <div key={child.id} className="flex flex-col items-center relative">
-                  {/* Vertical line from horizontal connector to each child (only if multiple children) */}
-                  {member.children.length > 1 && (
-                    <>
-                      <div className="absolute -top-4 sm:-top-5 left-1/2 transform -translate-x-1/2 h-4 sm:h-5 w-1 sm:w-1.5 bg-gradient-to-b from-yellow-400 to-yellow-500 rounded-full"></div>
-                      {/* Arrow pointing to child */}
-                      <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 z-10">
-                        <svg width="12" height="12" className="sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" 
-                        // className="text-yellow-600 drop-shadow-sm"
-                        >
-                          <path d="M12 18L6 12H9V6H15V12H18L12 18Z" fill="currentColor" stroke="white" strokeWidth="0.5"/>
-                        </svg>
-                      </div>
-                    </>
-                  )}
-                  {renderMember(child, level + 1, member.name)}
-                </div>
-              ))}
-            </div>
           </div>
         )}
       </div>
@@ -491,23 +395,6 @@ export default function FamilyTree({
 
   return (
     <div className="w-full p-2 sm:p-4">
-      {/* Limits Display */}
-      {/* <div className="mb-3 sm:mb-4 rounded-lg bg-yellow-50 px-2 sm:px-4 py-2 sm:py-3">
-        <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-2 sm:gap-4">
-          <div className="flex flex-col gap-1">
-            <span className="text-xs sm:text-sm font-medium text-black">
-              મહત્તમ પેઢી: <span className="font-bold text-yellow-600">{maxGenerations}</span>
-            </span>
-            <span className="text-xs sm:text-sm font-medium text-black">
-              પ્રતિ સભ્ય મહત્તમ સંતાનો: <span className="font-bold text-yellow-600">{maxChildrenPerParent}</span>
-            </span>
-          </div>
-          <div className="text-xs text-black">
-            {showBirthDeath ? 'મરણ: 4 પેઢી સુધી' : 'હયાતી: 4 પેઢી સુધી'}
-          </div>
-        </div>
-      </div> */}
-      
       {/* Scrollable Container - Horizontal scroll only */}
       <div className="w-full overflow-x-auto overflow-y-visible border-2 border-gray-200 rounded-lg p-2 sm:p-4 bg-gray-50">
         <div className="flex flex-col items-center min-w-max">
@@ -536,13 +423,8 @@ export default function FamilyTree({
           )}
         </div>
       </div>
-      
-      {/* Scroll Hint */}
-      {/* {members.length > 0 && (
-        <div className="mt-2 text-center text-[10px] sm:text-xs text-gray-500">
-          💡 પરિવારનું વંશવેલો જોવા માટે સ્ક્રોલ કરો (Scroll to view family tree)
-        </div>
-      )} */}
     </div>
   );
-}
+});
+
+export default FamilyTree;

@@ -170,33 +170,6 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-white px-4">
       <div className="w-full max-w-md">
         <div className="rounded-2xl bg-white p-8 shadow-2xl">
-          
-
-          {/* Toggle between Login and Signup */}
-          {/* <div className="mb-6 flex rounded-lg bg-gray-100 p-1">
-            <button
-              type="button"
-              onClick={() => setIsSignup(false)}
-              className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-                !isSignup
-                  ? 'bg-yellow-600 text-white'
-                  : 'text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Login
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsSignup(true)}
-              className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-                isSignup
-                  ? 'bg-yellow-600 text-white'
-                  : 'text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Sign Up
-            </button>
-          </div> */}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -392,4 +365,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

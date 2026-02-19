@@ -5,6 +5,14 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    // Disable Tailwind class restrictions for the Hayati page to allow precise PDF layout classes
+    files: ["**/app/**/hayati/page.tsx"],
+    rules: {
+      "tailwindcss/no-custom-classname": "off",
+      "tailwindcss/no-arbitrary-value": "off",
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

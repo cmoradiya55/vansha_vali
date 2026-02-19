@@ -1,13 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import HierarchicalTree from '@/components/HierarchicalTree';
+import HierarchicalTree from '@/components/MaranaFamilyTree';
 import PhotoUpload from '@/components/PhotoUpload';
 import DatePicker from '@/components/DatePicker';
 import RequiredLabel from '@/components/RequiredLabel';
 import { handleGujaratiInput, handleGujaratiPaste, filterGujaratiOnly } from '@/utils/gujaratiInputValidator';
 import DeleteIcon from '@/public/custom-icon/all-icons/DeleteIcon';
-import { generatePedhinamaPDF } from '@/utils/pdfGeneratorHtml2Canvas';
 
 interface FamilyMember {
   id: string;
@@ -41,6 +40,44 @@ const locationData: { [key: string]: { taluka: string; jillo: string } } = {
   'જામનગર': { taluka: 'જામનગર', jillo: 'જામનગર' },
   'ગાંધીનગર': { taluka: 'ગાંધીનગર', jillo: 'ગાંધીનગર' },
 };
+
+const defaultMember: FamilyMember = {
+  id: Date.now().toString(),
+  name: '',
+  age: '',
+  relation: '',
+  hayat: 'હયાત',
+  birth: '',
+  death: '',
+  deathDateType: 'tarikh',
+  deathAashre: '',
+  children: [
+    {
+      id: (Date.now() + 1).toString(),
+      name: '',
+      age: '',
+      relation: '',
+      hayat: 'હયાત',
+      birth: '',
+      death: '',
+      deathDateType: 'tarikh',
+      deathAashre: '',
+      children: [],
+    },
+    // {
+    //   id: (Date.now() + 2).toString(),
+    //   name: '',
+    //   age: '',
+    //   relation: '',
+    //   hayat: 'હયાત',
+    //   birth: '',
+    //   death: '',
+    //   deathDateType: 'tarikh',
+    //   deathAashre: '',
+    //   children: [],
+    // }
+  ]
+}
 
 export default function MaranPage() {
   const [formData, setFormData] = useState({
@@ -90,12 +127,11 @@ export default function MaranPage() {
     panchThumbImpression: ['', '', ''],
     applicantName: '',
     preparerPhoto: '',
-    // thumbImpression: '',
     panchPhotos: ['', '', ''],
     panchThumbImpressions: ['', '', ''],
   });
 
-  const [familyTree, setFamilyTree] = useState<FamilyMember[]>([]);
+  const [familyTree, setFamilyTree] = useState<FamilyMember[]>([defaultMember]);
 
   const handlePhotoChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -108,7 +144,6 @@ export default function MaranPage() {
       return { ...prev, panchPhotos: newPhotos };
     });
   };
-
 
   const handleInputChange = (field: string, value: string) => {
     // Filter out non-Gujarati characters for text fields (except dates, numbers, etc.)
@@ -189,7 +224,7 @@ export default function MaranPage() {
 
       {/* Reference */}
       <div className="w-full">
-        <h3 className="text-base sm:text-lg font-semibold text-yellow-800 border border w-[150] text-center rounded-lg ">
+        <h3 className="text-base sm:text-lg font-semibold text-yellow-800 border w-[150] text-center rounded-lg ">
           અરજદારોનો જવાબ
         </h3>
         <p className="text-center text-black leading-relaxed">
@@ -420,7 +455,7 @@ export default function MaranPage() {
                 <DatePicker
                   value={formData.applicationDate}
                   onChange={(value) => handleInputChange('applicationDate', value)}
-                  label="તારીખ:-"
+                  // label="તારીખ:-"
                 />
               </div>
             </div>
@@ -446,7 +481,7 @@ export default function MaranPage() {
                   <DatePicker
                     value={formData.date}
                     onChange={(value) => handleInputChange('date', value)}
-                    label="તારીખ:-"
+                    // label="તારીખ:-"
                   />
                 </div>
               </div>
@@ -544,13 +579,13 @@ export default function MaranPage() {
                   />
                 </div>
                 <div className='flex items-center'>
-                  <RequiredLabel className="mb-1 block text-xs font-medium text-black">ઉ.આ.વ</RequiredLabel>
+                  <RequiredLabel className="mb-1 block text-xs font-medium text-black">ઉ.આ.વ.</RequiredLabel>
                   <p className='text-black mx-2'> :-</p>
                   <input
                     type="text"
-                    value={panch.income || ''}
-                    onChange={(e) => handlePanchChange(index, 'income', e.target.value)}
-                    placeholder="ઉ.આ.વ"
+                    value={panch.age || ''}
+                    onChange={(e) => handlePanchChange(index, 'age', e.target.value)}
+                    placeholder="ઉ. આ. વ."
                     className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-yellow-500 focus:outline-none text-black bg-white"
                   />
                 </div>
@@ -637,7 +672,7 @@ export default function MaranPage() {
                   aria-label="Delete panch"
                   title="Delete panch"
                 >
-                  <DeleteIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+              <DeleteIcon height="16" width="16" color="red" />
                 </button>
               )}
               <div>
@@ -734,7 +769,7 @@ export default function MaranPage() {
                 <DatePicker
                   value={formData.finalDate}
                   onChange={(value) => handleInputChange('finalDate', value)}
-                  label="તારીખ:-"
+                  // label="તારીખ:-"
                 />
               </div>
             </div>
@@ -745,7 +780,7 @@ export default function MaranPage() {
               <DatePicker
                 value={formData.applicationDate}
                 onChange={(value) => handleInputChange('applicationDate', value)}
-                label="તારીખ:-"
+                // label="તારીખ:-"
               />
             </div>
             <span>ના રોજ નોટરી શ્રી</span>
@@ -795,7 +830,7 @@ export default function MaranPage() {
               <DatePicker
                 value={formData.notaryDate}
                 onChange={(value) => handleInputChange('notaryDate', value)}
-                label="તારીખ:-"
+                // label="તારીખ:-"
               />
             </div>
             <span className="text-xs sm:text-sm">થી કરેલ સોગંદનામું/સ્વઘોષણા તથા પંચોના લખાવ્યા મુજબ તૈયાર કરેલ છે. વારસદારોની ખોટા ખરા અંગે સબંધિત તલાટી કમ મંત્રીશ્રી જવાબદાર નથી.</span>
@@ -842,7 +877,7 @@ export default function MaranPage() {
       {/* Print Button */}
       <div className="flex justify-start pb-4 sm:pb-8">
         <button
-          onClick={() => generatePedhinamaPDF("pedhinama")} 
+          // onClick={() => generatePedhinamaPDF("pedhinama")} 
           className="flex items-center gap-2 rounded-lg bg-yellow-600 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base text-white hover:bg-yellow-700"
         >
           <span>Download PDF</span>

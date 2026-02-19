@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
@@ -67,17 +68,14 @@ const PlusIcon = ({ className }: { className?: string }) => (
 );
 
 export default function PhotoUpload({ value, onChange, label, className = '', accept = 'image/*', width = '200px', height = '200px' }: PhotoUploadProps) {
-  const [imagePreview, setImagePreview] = useState<string>(value || '');
+  // Remove imagePreview state, use value prop directly
   const [showDialog, setShowDialog] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Update preview when value prop changes
-  useEffect(() => {
-    setImagePreview(value || '');
-  }, [value]);
+  // Use value prop directly for image preview, no need to sync state
 
   // Detect if device is mobile/tablet
   useEffect(() => {
@@ -132,7 +130,6 @@ export default function PhotoUpload({ value, onChange, label, className = '', ac
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result as string;
-      setImagePreview(base64String);
       onChange(base64String);
       toast.success('ફોટો અપલોડ થયો', {
         position: 'top-right',
@@ -149,7 +146,7 @@ export default function PhotoUpload({ value, onChange, label, className = '', ac
   };
 
   const handlePlusClick = () => {
-    if (!imagePreview) {
+    if (!value) {
       if (isMobile) {
         // On mobile/tablet, show dialog with camera and gallery options
         setShowDialog(true);
@@ -172,7 +169,6 @@ export default function PhotoUpload({ value, onChange, label, className = '', ac
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setImagePreview('');
     onChange('');
     setShowDialog(false);
     toast.info('ફોટો કાઢી નાખ્યો', {
@@ -183,12 +179,14 @@ export default function PhotoUpload({ value, onChange, label, className = '', ac
 
   return (
     <div className={className} ref={containerRef}>
-      
-      {imagePreview ? (
+
+      {value ? (
         <div className="relative flex justify-center">
-          <div className={`relative w-32 h-32 sm:w-[${width}] sm:h-[${height}] border-4 border-blue-600 bg-white overflow-hidden shadow-lg` }style={{ aspectRatio: '1/1' }}>
-            <img
-              src={imagePreview}
+          <div className={`relative w-25 h-35 sm:w-[${width}] sm:h-[${height}] border-4 border-blue-600 bg-white overflow-hidden shadow-lg`} style={{ aspectRatio: '1/1' }}>
+            <Image
+              height={35}
+              width={20}
+              src={value}
               alt={label}
               className="w-full h-full object-cover"
             />
@@ -204,11 +202,11 @@ export default function PhotoUpload({ value, onChange, label, className = '', ac
         </div>
       ) : (
         <div className="relative flex justify-center">
-          <div 
-            className={`relative w-32 h-32 sm:w-[${width}] sm:h-[${height}] border-2 border-blue-400 bg-gray-50 flex items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors shadow-md`}
+          <div
+            className={`relative w-25 h-35 sm:w-[${width}] sm:h-[${height}] border-2 border-blue-400 bg-gray-50 flex items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors shadow-md`}
             style={{ aspectRatio: '1/1' }}
             onClick={handlePlusClick}
-          > 
+          >
             <div className="flex flex-col items-center gap-1 sm:gap-2 z-10">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-yellow-500 text-white rounded-full flex items-center justify-center hover:bg-yellow-600 transition-colors shadow-md">
                 <PlusIcon className="h-4 w-4 sm:h-5 sm:w-5" />

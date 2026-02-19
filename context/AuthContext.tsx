@@ -17,8 +17,8 @@ export interface UserData {
   gamname?: string;
   taluka?: string;
   district?: string;
-  createdAt?: any;
-  updatedAt?: any;
+  // createdAt?: any;
+  // updatedAt?: any;
 }
 
 interface AuthContextType {
@@ -64,8 +64,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const newUserData: UserData = {
               userId: firebaseUser.uid,
               email: firebaseUser.email || '',
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp(),
+              // createdAt: serverTimestamp(),
+              // updatedAt: serverTimestamp(),
             };
             await setDoc(userDocRef, newUserData);
             setUser(newUserData);
@@ -103,23 +103,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       await signInWithEmailAndPassword(auth, email, password);
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Login error:', error);
-      let errorMessage = 'Login failed. Please try again.';
+      // let errorMessage = 'Login failed. Please try again.';
       
-      if (error.code === 'auth/user-not-found') {
-        errorMessage = 'No account found with this email. Please sign up first.';
-      } else if (error.code === 'auth/wrong-password') {
-        errorMessage = 'Incorrect password. Please try again.';
-      } else if (error.code === 'auth/invalid-email') {
-        errorMessage = 'Invalid email address.';
-      } else if (error.code === 'auth/user-disabled') {
-        errorMessage = 'This account has been disabled.';
-      } else if (error.code === 'auth/too-many-requests') {
-        errorMessage = 'Too many failed attempts. Please try again later.';
-      }
+      // if (error.code === 'auth/user-not-found') {
+      //   errorMessage = 'No account found with this email. Please sign up first.';
+      // } else if (error.code === 'auth/wrong-password') {
+      //   errorMessage = 'Incorrect password. Please try again.';
+      // } else if (error.code === 'auth/invalid-email') {
+      //   errorMessage = 'Invalid email address.';
+      // } else if (error.code === 'auth/user-disabled') {
+      //   errorMessage = 'This account has been disabled.';
+      // } else if (error.code === 'auth/too-many-requests') {
+      //   errorMessage = 'Too many failed attempts. Please try again later.';
+      // }
       
-      return { success: false, error: errorMessage };
+      return { success: false,  };
     }
   };
 
@@ -150,26 +150,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userId,
         email,
         ...userData,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
+        // createdAt: serverTimestamp(),
+        // updatedAt: serverTimestamp(),
       };
 
       await setDoc(userDocRef, newUserData);
       
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       console.error('Signup error:', error);
-      let errorMessage = 'Signup failed. Please try again.';
+      // let errorMessage = 'Signup failed. Please try again.';
       
-      if (error.code === 'auth/email-already-in-use') {
-        errorMessage = 'This email is already registered. Please login instead.';
-      } else if (error.code === 'auth/invalid-email') {
-        errorMessage = 'Invalid email address.';
-      } else if (error.code === 'auth/weak-password') {
-        errorMessage = 'Password is too weak. Please use a stronger password.';
-      }
+      // if (error.code === 'auth/email-already-in-use') {
+      //   errorMessage = 'This email is already registered. Please login instead.';
+      // } else if (error.code === 'auth/invalid-email') {
+      //   errorMessage = 'Invalid email address.';
+      // } else if (error.code === 'auth/weak-password') {
+      //   errorMessage = 'Password is too weak. Please use a stronger password.';
+      // }
       
-      return { success: false, error: errorMessage };
+      return { success: false };
     }
   };
 
