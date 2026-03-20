@@ -101,6 +101,53 @@ export function handleGujaratiInput(
   }
 }
 
+/** Gujarati digit characters (U+0AE6 to U+0AEF) */
+const GUJARATI_DIGITS = '૦૧૨૩૪૫૬૭૮૯';
+const ENGLISH_DIGITS = '0123456789';
+
+/** Convert English digits (0-9) to Gujarati digits (૦-૯) */
+export function toGujaratiDigits(text: string): string {
+  if (!text) return '';
+  return text
+    .split('')
+    .map((char) => {
+      const i = ENGLISH_DIGITS.indexOf(char);
+      return i >= 0 ? GUJARATI_DIGITS[i] : char;
+    })
+    .join('');
+}
+
+/** Convert Gujarati digits (૦-૯) to English digits (0-9). Leaves other chars unchanged. */
+export function toEnglishDigits(text: string): string {
+  if (!text) return '';
+  return text
+    .split('')
+    .map((char) => {
+      const i = GUJARATI_DIGITS.indexOf(char);
+      return i >= 0 ? ENGLISH_DIGITS[i] : char;
+    })
+    .join('');
+}
+
+/** Normalize Aadhar input: allow only digits, return English digits string (max 12). */
+export function normalizeAadharInput(value: string): string {
+  const english = toEnglishDigits(value).replace(/\D/g, '');
+  return english.slice(0, 12);
+}
+
+/** Allow only English digits (0-9) and control keys in Aadhar field */
+export function handleAadharKeyDown(
+  e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+): void {
+  const allowedKeys = [
+    'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+    'Home', 'End', 'Tab', 'Enter', 'Escape', 'Meta', 'Control', 'Alt', 'Shift',
+  ];
+  if (allowedKeys.includes(e.key)) return;
+  if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase())) return;
+  if (!/^[0-9]$/.test(e.key)) e.preventDefault();
+}
+
 /**
  * Event handler for paste events - filters non-Gujarati characters
  */

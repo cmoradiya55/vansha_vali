@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { toast } from 'react-toastify';
-import DatePicker from './DatePicker';
 import { handleGujaratiInput, handleGujaratiPaste } from '@/utils/gujaratiInputValidator';
 import AddIcon from '@/public/custom-icon/all-icons/AddIcon';
 import DeleteIcon from '@/public/custom-icon/all-icons/DeleteIcon';
+import DatePicker from '../DatePicker';
 
 interface FamilyMember {
   id: string;
@@ -234,7 +234,7 @@ const FamilyTree = React.memo(function FamilyTree({
                   <select
                     value={status}
                     onChange={(e) => updateMember(member.id, 'hayat', e.target.value)}
-                    className="w-full border border-gray-300 px-0.5 sm:px-1 py-0.5 text-[8px] sm:text-[9px] focus:border-yellow-500 focus:outline-none text-black bg-white"
+                    className="w-full rounded border border-gray-300 px-0.5 sm:px-1 py-0.5 text-[8px] sm:text-[9px] min-h-0 focus:border-yellow-500 focus:outline-none text-black bg-white"
                   >
                     <option value="હયાત">હયાત</option>
                     <option value="મરણ">મરણ</option>
@@ -245,7 +245,7 @@ const FamilyTree = React.memo(function FamilyTree({
                     <select
                       value={deathDateType}
                       onChange={(e) => updateMember(member.id, 'deathDateType', e.target.value)}
-                      className="w-full border border-gray-300 px-0.5 sm:px-1 py-0.5 text-[8px] sm:text-[9px] focus:border-yellow-500 focus:outline-none text-black bg-white"
+                      className="w-full rounded border border-gray-300 px-0.5 sm:px-1 py-0.5 text-[8px] sm:text-[9px] min-h-0 focus:border-yellow-500 focus:outline-none text-black bg-white"
                     >
                       <option value="tarikh">તારીખ</option>
                       <option value="aashre">આશરે</option>
@@ -256,10 +256,12 @@ const FamilyTree = React.memo(function FamilyTree({
                   {isHayat ? (
                     <input
                       type="text"
-                      placeholder="ઉંમર"
+                      placeholder=""
                       value={member.age || ''}
                       onChange={(e) => updateMember(member.id, 'age', e.target.value)}
                       className="w-full border border-gray-300 px-0.5 sm:px-1 py-0.5 text-[8px] sm:text-[9px] focus:border-yellow-500 focus:outline-none text-black bg-white"
+                      title="ઉંમર"
+                      aria-label="ઉંમર"
                     />
                   ) : (
                     <div className="relative">
@@ -276,10 +278,14 @@ const FamilyTree = React.memo(function FamilyTree({
                       ) : (
                         <input
                           type="text"
-                          placeholder="ઉંમર"
-                          value={member.age || ''}
-                          onChange={(e) => updateMember(member.id, 'age', e.target.value)}
+                          placeholder="આશરે"
+                          value={member.deathAashre || ''}
+                          onChange={(e) => updateMember(member.id, 'deathAashre', e.target.value)}
+                          onKeyDown={handleGujaratiInput}
+                          onPaste={handleGujaratiPaste}
                           className="w-full border border-gray-300 px-0.5 sm:px-1 py-0.5 text-[8px] sm:text-[9px] focus:border-yellow-500 focus:outline-none text-black bg-white"
+                          title="આશરે"
+                          aria-label="આશરે"
                         />
                       )}
                     </div>

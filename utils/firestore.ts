@@ -1,101 +1,93 @@
-import { 
-  doc, 
-  getDoc, 
-  setDoc, 
-  updateDoc, 
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
   serverTimestamp,
-  collection,
-  query,
-  where,
-  getDocs
-} from 'firebase/firestore';
-import { db } from './firebase';
-import { UserData } from '@/context/AuthContext';
+} from "firebase/firestore";
+import { db } from "./firebase";
 
-/**
- * Get user data from Firestore
- */
+export interface Village {
+  village: string;
+  taluko: string;
+  district: string;
+}
+
+export interface UserData {
+  userId: string;
+  email: string;
+  username: string;
+  district: string;
+  taluko: string;
+  villageName: string;
+  expiryDate: string;
+  villages: Village[];
+  createdAt?: any;
+  updatedAt?: any;
+}
+
 export async function getUserData(userId: string): Promise<UserData | null> {
-  try {
-    const userDocRef = doc(db, 'users', userId);
-    const userDocSnap = await getDoc(userDocRef);
-    
-    if (userDocSnap.exists()) {
-      return userDocSnap.data() as UserData;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error getting user data:', error);
-    throw error;
-  }
+  const ref = doc(db, "users", userId);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) return null;
+
+  const raw = snap.data();
+
+  const rawVillages = raw.villages;
+  const villages: Village[] = Array.isArray(rawVillages)
+    ? rawVillages.map((v: any) => ({
+        village: v.village ?? v.gamname ?? "",
+        taluko: v.taluko ?? v.taluka ?? "",
+        district: v.district ?? v.jillo ?? "",
+      }))
+    : [];
+
+  return {
+    userId: raw.userId ?? userId,
+    email: raw.email ?? "",
+    username: raw.username ?? "",
+    district: raw.district ?? "",
+    taluko: raw.taluko ?? raw.taluka ?? "",
+    villageName: raw.villageName ?? raw.gamname ?? "",
+    expiryDate: raw.expiryDate ?? raw.expiredOn ?? "",
+    villages,
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
+  };
 }
 
-/**
- * Update user data in Firestore
- */
-export async function updateUserData(
-  userId: string, 
-  updates: Partial<Omit<UserData, 'userId' | 'createdAt'>>
-): Promise<void> {
-  try {
-    const userDocRef = doc(db, 'users', userId);
-    await updateDoc(userDocRef, {
-      ...updates,
+export async function setUserData(user: UserData) {
+  const ref = doc(db, "users", user.userId);
+
+  await setDoc(
+    ref,
+    {
+      ...user,
+      createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-    });
-  } catch (error) {
-    console.error('Error updating user data:', error);
-    throw error;
-  }
+    },
+    { merge: true }
+  );
 }
 
-/**
- * Create or update user data in Firestore
- */
-export async function setUserData(userId: string, userData: UserData): Promise<void> {
-  try {
-    const userDocRef = doc(db, 'users', userId);
-    await setDoc(userDocRef, {
-      ...userData,
-      updatedAt: serverTimestamp(),
-    }, { merge: true });
-  } catch (error) {
-    console.error('Error setting user data:', error);
-    throw error;
-  }
+export async function updateUserData(userId: string, data: Partial<UserData>) {
+  const ref = doc(db, "users", userId);
+
+  await updateDoc(ref, {
+    ...data,
+    updatedAt: serverTimestamp(),
+  });
 }
 
-/**
- * Check if email already exists in Firestore
- */
-export async function checkEmailExists(email: string): Promise<boolean> {
-  try {
-    const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('email', '==', email.toLowerCase().trim()));
-    const querySnapshot = await getDocs(q);
-    return !querySnapshot.empty;
-  } catch (error) {
-    console.error('Error checking email:', error);
-    throw error;
-  }
-}
+export function isAccessExpired(expiryDate: string): boolean {
+  if (!expiryDate) return false;
 
-/**
- * Get user by email
- */
-export async function getUserByEmail(email: string): Promise<UserData | null> {
-  try {
-    const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('email', '==', email.toLowerCase().trim()));
-    const querySnapshot = await getDocs(q);
-    
-    if (!querySnapshot.empty) {
-      return querySnapshot.docs[0].data() as UserData;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error getting user by email:', error);
-    throw error;
-  }
-}
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
+  const exp = new Date(expiryDate);
+  exp.setHours(0, 0, 0, 0);
+
+  return !isNaN(exp.getTime()) && exp < today;
+}

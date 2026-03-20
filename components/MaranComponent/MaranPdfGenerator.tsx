@@ -40,7 +40,7 @@ interface PanchMember {
   occupation?: string;
 }
 
-interface HayatiTemplateData {
+interface MaranTemplateData {
   kamakNo: string;
   date: string;
   jillo: string;
@@ -70,6 +70,14 @@ interface HayatiTemplateData {
   notaryAddress: string;
   notaryRegNo: string;
   serialNo: string;
+  // Maran-specific fields
+  deceasedName: string;
+  deceasedRelation: string;
+  rehevaasi: string;
+  deathDateType: string;
+  deathDate: string;
+  deathAashre: string;
+  pedhinamuPurposeFinal: string;
 }
 
 // English → Gujarati digit conversion for PDF display
@@ -95,6 +103,17 @@ const toGujaratiDigits = (text: string | number | undefined | null): string => {
     .join('');
 };
 
+// Convert yyyy-mm-dd → DD/MM/YYYY then to Gujarati digits
+const toGujaratiDate = (date: string | undefined | null): string => {
+  if (!date) return '';
+  const parts = date.split('-');
+  if (parts.length === 3) {
+    const [yyyy, mm, dd] = parts;
+    return toGujaratiDigits(`${dd}/${mm}/${yyyy}`);
+  }
+  return toGujaratiDigits(date);
+};
+
 // Legal page size: 8.5 × 14 inches = 215.9 × 355.6 mm (portrait)
 // Landscape: width × height = 355.6 × 215.9 mm
 const LEGAL_PAGE_WIDTH_MM = 355.6;
@@ -116,24 +135,30 @@ function renderPedhiTree(members: TreeMember[], level = 0): string {
     const status = member.hayat;
     const deathDateType = member.deathDateType;
 
+    // Only show second line (ઉ.આ.વ. / મરણ / આશરે) when data is present; otherwise only diamond/box design
     const secondLine = (() => {
       if (status === 'હયાત') {
-        // For alive members, show age
-        return `ઉ.આ.વ.${member.age || ''}`;
+        if (!member.age?.trim()) return '';
+        return `ઉ.આ.વ.${member.age}`;
       }
-
-      // For deceased members, show death info based on type
       if (deathDateType === 'tarikh') {
-        return `મરણ તા. ${member.death || ''}`;
+        if (!member.death?.trim()) return '';
+        return `મરણ તા. ${member.death}`;
       }
-
-      // deathDateType === 'aashre' -> approximate age
-      return `આશરે ઉંમર ${member.age || ''}`;
+      if (deathDateType === 'aashre') {
+        const aashreVal = (member.deathAashre ?? member.age ?? '').trim();
+        if (!aashreVal) return '';
+        return `આશરે ઉંમર ${aashreVal}`;
+      }
+      return '';
     })();
+
+    // When no second line (no ઉ.આ.વ. / મરણ / આશરે data), don't show the solid black connector — only diamond/box design
+    const showVerticalConnector = !isRoot && !!secondLine;
 
     return `
       <div style="display: flex; flex-direction: column; align-items: center; position: relative;">
-        ${!isRoot ? `
+        ${showVerticalConnector ? `
           <!-- Vertical line connecting to parent -->
           <div style="position: absolute; width: 2px; height: 20px; background: #000; top: -20px; left: 50%; transform: translateX(-50%);"></div>
         ` : ''}
@@ -150,9 +175,7 @@ function renderPedhiTree(members: TreeMember[], level = 0): string {
           <div style="font-weight: 500; line-height: 1.2;">
             ${member.name}${member.relation ? ` (${member.relation})` : ''}
           </div>
-          <div style="font-size: 10px; line-height: 1.2;">
-            ${secondLine}
-          </div>
+          ${secondLine ? `<div style="font-size: 10px; line-height: 1.2;">${secondLine}</div>` : ''}
         </div>
         
         ${hasChildren ? `
@@ -237,7 +260,7 @@ const waitForImages = async (container: HTMLElement): Promise<void> => {
   console.log('All images loaded');
 };
 
-export const generateHayatiPDF = async (data: HayatiTemplateData,) => {
+export const generateMaranPDF = async (data: MaranTemplateData,) => {
 
   try {
     // Load Gujarati fonts before rendering
@@ -257,7 +280,7 @@ export const generateHayatiPDF = async (data: HayatiTemplateData,) => {
 
     document.body.appendChild(container);
 
-    const getPage1Html = (data: HayatiTemplateData) => {
+    const getPage1Html = (data: MaranTemplateData) => {
       return `
     <div style="height: 100%; min-height: 100%; display: flex; flex-direction: column; padding: 4mm 10mm; font-family: 'Noto Sans Gujarati', sans-serif; background: white; box-sizing: border-box;">
       <div style="flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0;">
@@ -287,7 +310,7 @@ export const generateHayatiPDF = async (data: HayatiTemplateData,) => {
                   border: 1px solid #9ca3af;
                 "
               >
-                હયાતી પેઢીનામું
+                અરજદારોનો જવાબ
               </p>
 
               <!-- Center text -->
@@ -302,11 +325,39 @@ export const generateHayatiPDF = async (data: HayatiTemplateData,) => {
               </div>
             </div>
         </div>
+
+                <!-- Declaration Text -->
+        <p style="font-size: 16px; line-height: 1.6; text-align: justify; margin: 5px 0; color: #000; text-indent:80px">
+          હું નીચે સહિ કરનાર
+          <span style="font-weight:bold; padding:0 4px; ">${data.applicantName || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span>
+          ઉ.વ.આ.
+          <span style="font-weight:bold; padding:0 4px; ">${data.applicantAge || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span>
+          રહેવાસી
+          <span style="font-weight:bold; padding:0 4px; ">${data.rehevaasi || data.applicantLocation || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span>
+          તાલુકો:
+          <span style="font-weight:bold; padding:0 4px; ">${data.applicantTaluka || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span>
+          આજ રોજ રૂબરૂ હાજર થઇ પૂછવાની લખાવું છૂ કે,
+          <span style="font-weight:bold; padding:0 4px; ">${data.deceasedName || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span>
+          કે જેઓ મારા
+          <span style="font-weight:bold; padding:0 4px; ">${data.deceasedRelation || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span>
+          થાય. તેઓનું
+          <span style="font-weight:bold; padding:0 4px; "> ${data.applicantLocation || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span>
+          મુકામે
+          ${data.deathDateType === 'aashre'
+          ? `<span style="font-weight:bold; padding:0 4px; ">આશરે ${data.deathAashre || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span>`
+          : `<span style="font-weight:bold; padding:0 4px; ">${data.deathDate || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span>`
+        }
+          ના રોજ અવસાન થયેલું છે.
+          <span style="font-weight:bold; padding:0 4px; ">${data.purpose || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span>
+          ના કામે તેમના પેઢીનામાની જરૂર હોઇ પેઢીનામું મેળવવા માટે, તારીખ
+          <span style="font-weight:bold; padding:0 4px; ">${toGujaratiDate(data.applicationDate) || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span>
+          ના રોજ અરજી કરેલી છે. તે સંદર્ભે આજ રોજ લખાવું છૂ કે, ગુજરનારના વારસદારો જાહેર કરતું પેઢીનામું નીચે પ્રમાણે છે. જે હકીક્ત છે.
+        </p>
           
           <!-- Location Fields -->
-          <div style="text-align: center; font-size: 16px; color: #000;">
+          <div style="text-align: end; font-size: 16px; color: #000;">
             <span>મોજે :<span style="border-bottom: 1px solid #000; padding: 0 30px 10px 30px; display: inline-block; margin: 0 10px;">${data.applicantLocation || ''}</span></span>
-            <span>તાલુકો :<span style="border-bottom: 1px solid #000; padding: 0 30px 10px 30px; display: inline-block; margin: 0 10px;">${data.jillo || ''}</span></span>
+            <span>તાલુકો :<span style="border-bottom: 1px solid #000; padding: 0 30px 10px 30px; display: inline-block; margin: 0 10px;">${data.applicantTaluka || ''}</span></span>
             <span>જિલ્લો :<span style="border-bottom: 1px solid #000; padding: 0 30px 10px 30px; display: inline-block; margin: 0 10px;">${data.applicantJillo || ''}</span></span>
           </div>
         </div>
@@ -343,13 +394,10 @@ export const generateHayatiPDF = async (data: HayatiTemplateData,) => {
           </div>
         </div>
 
-        <!-- Description Text from image -->
-        <p style="font-size: 16px; line-height: 1.2; text-align: justify; margin: 5px 0; color: #000; text-indent:80px" >
-          હું નીચે સહી કરનાર (અરજદાર) આજરોજ તલાટી કર્મ મંત્રી ${data.applicantTaluka} તા. ${data.applicantLocation} જિ. ${data.applicantLocation} રૂબરૂ હાજર થઈ પૂછવાથી લખાવું છું કે હું પોતે ${data.applicantName} રહેવાસી ${data.applicantLocation} તા. ${data.applicantTaluka} જિ. ${data.applicantLocation} હયાત છું અને આ પેઢીનામું  ${data.purpose || ''} ના કામે જરૂર હોય પેઢીનામું મેળવવા માટે, તારીખ ${toGujaratiDigits(data.date)} ના રોજ અમોએ અરજી કરેલી છે, તે અરજી અન્વયે આજરોજ પંચો રૂબરૂ હાજર રહી લખાવું છું કે, મારા સીધીલીટી ના ઉપરોક્ત દર્શાવ્યા સિવાયના અન્ય કોઈ વારસદારો બાકી રહેતા નથી, તેમ છતા કોઈ વારસદારો બાકી નીકળે તો તમામ જવાબદારી મારી પોતાની રહેશે અને જો પેઢીનામું ખોટું ઠરે તો તેમાં અમે અરજદાર તથા પંચો જવાબદાર રહેશું. અમોએ ખોટા વારસદારો બતાવેલ નથી તથા સાચા વારસદારો બાકી રાખેલ નથી, ખોટું પેઢીનામું લખાવવું એ ફોજદારી ગુનો બને છે, જેની અમોને જાણ છે, આ પેઢીનામાં બાબતે રૂબરૂમાં સહી કરનાર તલાટી કમ મંત્રી જવાબદાર નથી.
-        </p>
-
-        <div style="font-size: 16px; line-height: 1.2; text-align: justify; color: #000;">
-          ઉપર મુજબનું પેઢીનામું અમે પંચોના લખાવા મુજબનું શુધ્ધ બુધ્ધિથી અક્કલ હોશિયારીથી કોઈપણ જાતના દાબ-દબાણ લોભ-લાલચ સિવાયનું લખાવા મુજબનું સાચું અને ખરૂ છે, જે અમોએ વાંચી સમજી સાંભળી વિચારીને નીચે સહી કરી આપેલ છે. જે મને કબૂલ મંજૂર છે.
+        <div style="font-size: 16px; line-height: 1.4; text-align: justify; color: #000;">
+          <p style="margin: 0 0 6px 0;">ઉપર પ્રમાણેનું પેઢીનામું અમો આ કામના અરજદાર તથા પંચોના લખાવ્યા મુજબનું બરાબર છે. અને જો આ પેઢીનામું ખોટું કરે તેમાં અમો અરજદાર તથા પંચો જવાબદાર છીએ. સદર પેઢીનામામાં અમો અરજદાર કે પંચોને કોઇ ખોટા વારસદારો આવેલા નથી કે સાચા વારસદારો બતાવવાના બાકી રાખેલા નથી. ખોટું પેઢીનામું લખાવવું ફોજદારી ગુન્હો છે. જેની અમોને સમજ છે. આ બાબતે તલાટીની લેશ માત્ર જવાબદાર નથી કે આ અંગે તેઓની કોઈ જવાબદારી નથી.</p>
+          <p style="margin: 0 0 6px 0;">ઉપર મુજબનું પેઢીનામું, જવાબ મારી શુદ્ધ બુદ્ધિથી, અકકલ હોશિયારીથી, કોઇપણ જાતના દાબ-દબાણ, લોભ-લાલચ સિવાયનો લખાવ્યા મુજબનો સાચો અને ખરો છે. જે મે વાંચી, સમજી, સાંભળી વિચારીને સહી કરેલ છે. જે બરાબર છે.</p>
+          <p style="margin: 0;">ઉપર પ્રમાણેનું પેઢીનામું અમો આ કામના અરજદારના રૂબરૂ જવાબ, તારીખ <span style="font-weight:bold; padding:0 4px;">${toGujaratiDate(data.documentDate) || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span> ના સોગંદનામા, રજુ કરેલ સાઘનિક તથા પંચોના લખાવ્યા મુજબનું તૈયાર કરી આપેલ છે. જેમાં તલાટીશ્રી જવાબદાર નથી.</p>
         </div>
 
         <!-- Bottom Signature Section -->
@@ -357,27 +405,14 @@ export const generateHayatiPDF = async (data: HayatiTemplateData,) => {
           <!-- Left: Location, Date, Panch signatures -->
           <div style="flex: 1.2; line-height: 1.4;">
             <div style="margin-bottom: 6px;">સ્થળ:-
-              <span style="
-                display: inline-block;
-                width: 40%;
-              border-bottom: 1px solid #000;
-              height: 34px;
-            ">
-            &nbsp;
-            ${data.applicantLocation}
-           </span>  
-           
+              <span style="display:inline-block; width:40%;  height:34px; font-weight:bold; padding:0 4px;">
+                ${data.applicantLocation || ''}
+              </span>
             </div>
             <div style="margin-bottom: 10px;">તારીખ:-
-              <span style="
-                    display: inline-block;
-                    width: 40%;
-                  border-bottom: 1px solid #000;
-                  height: 34px;
-                ">
-              &nbsp;
-              ${toGujaratiDigits(data.date)}
-            </span>              
+              <span style="display:inline-block; width:40%;  height:34px; font-weight:bold; padding:0 4px;">
+                ${toGujaratiDate(data.date) || ''}
+              </span>
             </div>
             રૂબરૂ
           </div>
@@ -450,18 +485,19 @@ export const generateHayatiPDF = async (data: HayatiTemplateData,) => {
                 <div style="
                   font-size: 16px;
                   display: flex;
-                  align-items: center;
-                  gap: 11px;
+                  align-items: baseline;
+                  gap: 8px;
                   width: 100%;
                 ">
                   <span style="white-space: nowrap;">આધાર કાર્ડ નંબર:</span>
                   <span style="
                     display: inline-block;
-                    width: 80%;
+                    flex: 1;
                     border-bottom: 1px solid #000;
-                    height: 40px;
+                    padding-bottom: 2px;
+                    min-height: 1em;
                   ">
-                    ${data.applicantAadharNumber}
+                    ${toGujaratiDigits(data.applicantAadharNumber)}
                     &nbsp;
                   </span>
                 </div>
@@ -484,7 +520,7 @@ export const generateHayatiPDF = async (data: HayatiTemplateData,) => {
           border-top: 1px solid #e5e5e5;
           margin-top: 2px;
         ">
-          <span>https://pedhinama.com/hayati</span>
+          <span>https://vanshavali.com/maran</span>
           <span>1/2</span>
         </div>
     </div>
@@ -610,18 +646,18 @@ export const generateHayatiPDF = async (data: HayatiTemplateData,) => {
           <div style="
                   font-size: 11px;
                   display: flex;
-                  align-items: center;
-                  
+                  align-items: baseline;
                   width: 100%;
                 ">
                   <span style="white-space: nowrap; color: #000;">આધારકાર્ડ નં:</span>
                   <span style="color: #000;
                     display: inline-block;
-                    width: 80%;
+                    flex: 1;
                     border-bottom: 1px solid #000;
-                    height: 40px;
+                    padding-bottom: 2px;
+                    min-height: 1em;
                   ">
-                    ${panch.aadharNumber}
+                    ${toGujaratiDigits(panch.aadharNumber)}
                     &nbsp;
                   </span>
                 </div>
@@ -633,7 +669,7 @@ export const generateHayatiPDF = async (data: HayatiTemplateData,) => {
     </div>`;
 
 
-    const getPage2Html = (data: HayatiTemplateData) => {
+    const getPage2Html = (data: MaranTemplateData) => {
       return `
       <div style="height: 100%; min-height: 100%; display: flex; flex-direction: column; padding: 4mm 10mm; line-height: 1.6; font-family: 'Noto Sans Gujarati', sans-serif; box-sizing: border-box; background: #fff; position: relative;">
         <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.06; background-image: repeating-linear-gradient(45deg, transparent, transparent 18px, #888 18px, #888 19px), repeating-linear-gradient(-45deg, transparent, transparent 18px, #888 18px, #888 19px); z-index: 0; pointer-events: none;"></div>
@@ -698,7 +734,7 @@ export const generateHayatiPDF = async (data: HayatiTemplateData,) => {
 
           <div style="font-size: 16px; line-height: 1.2; text-align: justify; color: #000;">
           <p style="margin: 0 0 8px 0; text-indent:80px">
-            અમો નીચે સહી કરનાર પંચો આજરોજ રૂબરૂ હાજર થઇ લખાવીએ છીએ કે, અમો અરજદાર તથા તેમના કુટુંબીજનોને વારસદારોને સારી રીતે ઓળખીએ છીએ,અરજદારનો જવાબ અમારી રૂબરૂ લેવામાં આવ્યો છે. જેમાં તેમણે પાન નં. ૧ ઉપર લખાવેલ પેઢીનામાની ખાતરી કરતાં તેમાં દર્શાવેલ કુલ  ${data.hayatCount || '૦'} હયાત + ${data.maranCount || '૦'} મરણ એમ કુલ ${data.totalHeirs || '૦'} વારસદાર છે. જેમાં કોઈ કાયદેસરના વારસદારો લખવાના રહી જતા નથી. ખોટું પેઢીનામું લખાવવું ફોજદારી ગુનો છે. જેની અમોને સમજ છે.
+            અમો નીચે સહી કરનાર પંચો આજરોજ રૂબરૂ હાજર થઇ લખાવીએ છીએ કે, અમો અરજદાર તથા તેમના કુટુંબીજનોને વારસદારોને સારી રીતે ઓળખીએ છીએ,અરજદારનો જવાબ અમારી રૂબરૂ લેવામાં આવ્યો છે. જેમાં તેમણે પાન નં. ૧ ઉપર લખાવેલ પેઢીનામાની ખાતરી કરતાં તેમાં દર્શાવેલ કુલ <span style="font-weight:bold; padding:0 4px;">${toGujaratiDigits(data.hayatCount || '') || '૦'}</span> હયાત + <span style="font-weight:bold; padding:0 4px;">${toGujaratiDigits(data.maranCount || '') || '૦'}</span> મરણ એમ કુલ <span style="font-weight:bold; padding:0 4px;">${toGujaratiDigits(data.totalHeirs || '') || '૦'}</span> વારસદાર છે. જેમાં કોઈ કાયદેસરના વારસદારો લખવાના રહી જતા નથી. ખોટું પેઢીનામું લખાવવું ફોજદારી ગુનો છે. જેની અમોને સમજ છે.
           </div>
           </p>
 
@@ -717,15 +753,15 @@ export const generateHayatiPDF = async (data: HayatiTemplateData,) => {
           </div>
 
           <div style="display: flex; gap: 20px; font-size: 16px; margin-top: 11px; color: #000;">
-          <div>સ્થળ :-</strong> ${data.finalLocation}</div>
-          <div>તારીખ :-</strong> ${toGujaratiDigits(data.finalDate)}</div>
-        </div>
+            <div>સ્થળ :- <span style="font-weight:bold; padding:0 4px; ">${data.finalLocation || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span></div>
+            <div>તારીખ :- <span style="font-weight:bold; padding:0 4px; ">${toGujaratiDate(data.finalDate) || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span></div>
+          </div>
 
-          <div style="font-size: 16px; text-align: justify; line-height: 1.2; margin-top: 8px; color: #000;">
+          <div style="font-size: 16px; text-align: justify; line-height: 1.4; margin-top: 8px; color: #000;">
             <p style="text-indent: 80px; margin: 0;">
-              આ પ્રમાણેનું પેઢીનામું અમો આ કામના અરજદારના રૂબરૂ જવાબ, તથા તારીખ ${toGujaratiDigits(data.notaryDate)} ના રોજ નોટરી શ્રી ${data.notaryName} રજી નં. ${data.notaryRegNo} ના સિ.નં. ${data.notaryRegNo} તારીખ ${toGujaratiDigits(data.applicationDate)} થી કરેલ સોંગદનામું/સ્વઘોષણા તથા પંચોના લખાવ્યા મુજબ તૈયાર કરેલ છે. વારસદારોની ખોટા ખરા અંગે સબંધિત તલાટીકમ મંત્રીશ્રી જવાબદાર નથી. 
+              આ પ્રમાણેનું પેઢીનામું અમો આ કામના અરજદારના રૂબરૂ જવાબ, તથા તારીખ <span style="font-weight:bold; padding:0 4px;">${toGujaratiDate(data.notaryDate) || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span> ના રોજ નોટરી શ્રી <span style="font-weight:bold; padding:0 4px;">${data.notaryName || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span> રજી નં. <span style="font-weight:bold; padding:0 4px;">${toGujaratiDigits(data.notaryRegNo) || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span> ના સિ.નં. <span style="font-weight:bold; padding:0 4px;">${toGujaratiDigits(data.serialNo) || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span> તારીખ <span style="font-weight:bold; padding:0 4px;">${toGujaratiDate(data.applicationDate) || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span> થી કરેલ સોંગદનામું/સ્વઘોષણા તથા પંચોના લખાવ્યા મુજબ તૈયાર કરેલ છે. વારસદારોની ખોટા ખરા અંગે સબંધિત તલાટીકમ મંત્રીશ્રી જવાબદાર નથી.
             </p>
-            <p style="margin: 6px 0 0 0;">આ પેઢીનામું  ${data.purpose || ''} ના કામે ઉપયોગ કરી શકાશે.</p>
+            <p style="margin: 6px 0 0 0;">આ પેઢીનામું <span style="font-weight:bold; padding:0 4px;">${data.purpose || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span> ના કામે ઉપયોગ કરી શકાશે.</p>
 
             <div style="font-size: 16px; text-align: justify; line-height: 1.2; margin: 8px 0; color: #000;">
             <p style="margin: 0 0 8px 0; ">
@@ -760,7 +796,7 @@ export const generateHayatiPDF = async (data: HayatiTemplateData,) => {
           border-top: 1px solid #e5e5e5;
           margin-top: 2px;
         ">
-          <span>https://pedhinama.com/hayati</span>
+          <span>https://vanshavali.com/maran</span>
           <span>2/2</span>
         </div>
       </div>
@@ -792,7 +828,7 @@ export const generateHayatiPDF = async (data: HayatiTemplateData,) => {
     const imgData2 = canvas2.toDataURL('image/jpeg', 1.0);
     pdf.addImage(imgData2, 'JPEG', 0, 0, LEGAL_PAGE_WIDTH_MM, LEGAL_PAGE_HEIGHT_MM);
 
-    const fileName = `હયાતી_પેઢીનામું_${data.applicantName}_${new Date().getTime()}.pdf`;
+    const fileName = `મરણ_પેઢીનામું_${data.applicantName}_${new Date().getTime()}.pdf`;
 
     // Remove container
     document.body.removeChild(container);
@@ -818,8 +854,8 @@ export const generateHayatiPDF = async (data: HayatiTemplateData,) => {
 
         // Share the PDF so user can save/open it
         await Share.share({
-          title: 'હયાતી પેઢીનામું',
-          text: 'તમારું હયાતી પેઢીનામું તૈયાર છે',
+          title: 'મરણ પેઢીનામું',
+          text: 'તમારું મરણ પેઢીનામું તૈયાર છે',
           url: savedFile.uri,
           dialogTitle: 'PDF શેર કરો'
         });
@@ -835,16 +871,33 @@ export const generateHayatiPDF = async (data: HayatiTemplateData,) => {
         return { success: false, error: mobileError, platform: 'mobile' };
       }
     } else {
-      // Web: Use standard download
-      pdf.save(fileName);
+      const blob = pdf.output('blob');
+      const blobUrl = URL.createObjectURL(blob);
+      const isMobileView = typeof window !== 'undefined' && (
+        window.innerWidth <= 768 ||
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent || '')
+      );
 
-      // Optionally open in new tab
-      // const blobUrl = pdf.output('bloburl');
-      // window.open(blobUrl, '_blank');
+      if (isMobileView) {
+        // Mobile web: direct download (no options dialog) then open PDF
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = fileName;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.open(blobUrl, '_blank');
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+        return { success: true, fileName, platform: 'web' };
+      }
 
+      // Desktop web: open in new tab so user can view and download from viewer
+      window.open(blobUrl, '_blank');
       return {
         success: true,
         fileName,
+        blobUrl,
         platform: 'web'
       };
     }

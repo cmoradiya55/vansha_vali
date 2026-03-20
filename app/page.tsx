@@ -5,18 +5,18 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Home() {
-  const { isAuthenticated, loading } = useAuth();
+  const { user, loading, isExpired } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!loading) {
-      if (isAuthenticated) {
+      if (user && !isExpired) {
         router.push('/hayati');
       } else {
         router.push('/login');
       }
     }
-  }, [isAuthenticated, loading, router]);
+  }, [user, loading, isExpired, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-yellow-50 to-yellow-100">

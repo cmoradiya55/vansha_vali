@@ -1,0 +1,331 @@
+/**
+ * Form responsive styles – mobile and tablet only.
+ * Desktop (1024px and above) is unchanged; no rules apply there.
+ */
+
+/* ========== Tablet: 768px – 1023px ========== */
+@media (max-width: 1023px) and (min-width: 768px) {
+  #pedhinama,
+  #maran-form-container {
+    font-size: 14px;
+    letter-spacing: 0.01em;
+    line-height: 1.5;
+  }
+
+  #pedhinama h1,
+  #maran-form-container h1 {
+    font-size: 1.35rem;
+    letter-spacing: 0.02em;
+  }
+
+  #pedhinama h3,
+  #maran-form-container h3 {
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+  }
+
+  #pedhinama p,
+  #maran-form-container p,
+  #pedhinama span,
+  #maran-form-container span {
+    font-size: 0.875rem;
+    letter-spacing: 0.01em;
+  }
+
+  #pedhinama input,
+  #pedhinama select,
+  #pedhinama textarea,
+  #maran-form-container input,
+  #maran-form-container select,
+  #maran-form-container textarea {
+    font-size: 0.875rem;
+    letter-spacing: 0.01em;
+    padding: 0.5rem 0.6rem;
+    box-sizing: border-box;
+  }
+
+  #pedhinama label,
+  #maran-form-container label {
+    font-size: 0.8125rem;
+    letter-spacing: 0.01em;
+  }
+
+  /* Section cards spacing */
+  #pedhinama .rounded-lg.border,
+  #maran-form-container .rounded-lg.border {
+    padding: 0.875rem 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Signature / underline lines don't overflow */
+  #pedhinama [class*="border-b"],
+  #maran-form-container [class*="border-b"] {
+    max-width: 100%;
+  }
+
+  /* Form fields: same gap and spacing */
+  #pedhinama .form-field,
+  #maran-form-container .form-field {
+    gap: 0.5rem;
+  }
+
+  #pedhinama .form-select,
+  #maran-form-container .form-select {
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Dropdowns: responsive, input and menu fit – tablet */
+  #pedhinama select,
+  #maran-form-container select {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  #pedhinama .panch-field select,
+  #maran-form-container .panch-field select,
+  #pedhinama .form-field select,
+  #maran-form-container .form-field select {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Panch detail fields: same space, proper design touch */
+  #pedhinama .panch-detail-row .panch-field,
+  #maran-form-container .panch-detail-row .panch-field {
+    gap: 0.5rem;
+  }
+
+  #pedhinama .panch-input,
+  #maran-form-container .panch-input {
+    min-height: 2.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Letter spacing: name and purpose (હેતુ) */
+  #pedhinama .input-name,
+  #maran-form-container .input-name {
+    letter-spacing: 0.03em;
+  }
+
+  #pedhinama .declaration-value .font-medium,
+  #maran-form-container .declaration-value .font-medium {
+    letter-spacing: 0.03em;
+  }
+
+  #pedhinama .hetu-label,
+  #maran-form-container .hetu-label {
+    letter-spacing: 0.04em;
+  }
+
+  #pedhinama .hetu-input,
+  #maran-form-container .hetu-input {
+    letter-spacing: 0.03em;
+  }
+
+  #pedhinama .declaration-body,
+  #maran-form-container .declaration-body {
+    font-size: 0.9375rem;
+    line-height: 1.75;
+  }
+}
+
+/* ========== Mobile: below 768px ========== */
+@media (max-width: 767px) {
+  #pedhinama,
+  #maran-form-container {
+    font-size: 13px;
+    letter-spacing: 0.015em;
+    line-height: 1.55;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  #pedhinama h1,
+  #maran-form-container h1 {
+    font-size: 1.25rem;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.75rem;
+  }
+
+  #pedhinama h3,
+  #maran-form-container h3 {
+    font-size: 0.9rem;
+    letter-spacing: 0.015em;
+    margin-bottom: 0.5rem;
+  }
+
+  #pedhinama p,
+  #maran-form-container p {
+    font-size: 0.8125rem;
+    letter-spacing: 0.015em;
+    line-height: 1.5;
+  }
+
+  /* Declaration body paragraphs: keep readable size on mobile */
+  #pedhinama .declaration-body,
+  #maran-form-container .declaration-body {
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+
+  #pedhinama span,
+  #maran-form-container span {
+    font-size: 0.8125rem;
+    letter-spacing: 0.015em;
+  }
+
+  #pedhinama input,
+  #pedhinama select,
+  #pedhinama textarea,
+  #maran-form-container input,
+  #maran-form-container select,
+  #maran-form-container textarea {
+    font-size: 0.875rem;
+    letter-spacing: 0.02em;
+    padding: 0.6rem 0.75rem;
+    min-height: 44px;
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+
+  #pedhinama textarea,
+  #maran-form-container textarea {
+    min-height: 80px;
+  }
+
+  #pedhinama label,
+  #maran-form-container label {
+    font-size: 0.75rem;
+    letter-spacing: 0.015em;
+  }
+
+  /* Section cards: comfortable padding and spacing */
+  #pedhinama .rounded-lg.border,
+  #maran-form-container .rounded-lg.border {
+    padding: 0.875rem;
+    margin-bottom: 0.875rem;
+  }
+
+  /* Date picker area: readable and touch-friendly */
+  #pedhinama .react-datepicker-wrapper,
+  #maran-form-container .react-datepicker-wrapper {
+    min-height: 44px;
+  }
+
+  #pedhinama .react-datepicker-wrapper input,
+  #maran-form-container .react-datepicker-wrapper input {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    min-height: 44px;
+  }
+
+  /* Signature / underline lines: full width, no overflow */
+  #pedhinama [class*="border-b"],
+  #maran-form-container [class*="border-b"] {
+    max-width: 100%;
+  }
+
+  /* Buttons: touch-friendly */
+  #pedhinama button:not([class*="p-0"]):not([class*="px-1"]),
+  #maran-form-container button:not([class*="p-0"]):not([class*="px-1"]) {
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* પેઢીનામું family tree cards: slightly larger tap targets on mobile */
+  #pedhinama .border-2 input,
+  #pedhinama .border-2 select,
+  #maran-form-container .border-2 input,
+  #maran-form-container .border-2 select {
+    font-size: 0.75rem;
+    letter-spacing: 0.01em;
+    padding: 0.35rem 0.5rem;
+    min-height: 36px;
+  }
+
+  /* Add/delete icons in tree: larger touch target */
+  #pedhinama .border-2 + div button,
+  #maran-form-container .border-2 + div button {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0.25rem;
+  }
+
+  /* Form fields: same gap and spacing on mobile */
+  #pedhinama .form-field,
+  #maran-form-container .form-field {
+    gap: 0.5rem;
+  }
+
+  #pedhinama .form-select,
+  #maran-form-container .form-select {
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Dropdowns: responsive, input size fits container – mobile */
+  #pedhinama select,
+  #maran-form-container select {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    min-height: 44px;
+  }
+
+  #pedhinama .panch-field select,
+  #maran-form-container .panch-field select,
+  #pedhinama .form-field select,
+  #maran-form-container .form-field select {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Panch detail fields: full width when stacked, same gap and touch size */
+  #pedhinama .panch-detail-row .panch-field,
+  #maran-form-container .panch-detail-row .panch-field {
+    flex-basis: 100%;
+    gap: 0.5rem;
+  }
+
+  #pedhinama .panch-input,
+  #maran-form-container .panch-input {
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Prevent applicant signature section from being cut off on mobile */
+  #pedhinama,
+  #maran-form-container {
+    padding-bottom: 2rem;
+  }
+
+  #pedhinama .applicant-signature-section,
+  #maran-form-container .applicant-signature-section {
+    padding-bottom: 1.5rem;
+  }
+
+  /* Letter spacing: name and purpose (હેતુ) on mobile */
+  #pedhinama .input-name,
+  #maran-form-container .input-name {
+    letter-spacing: 0.035em;
+  }
+
+  #pedhinama .declaration-value .font-medium,
+  #maran-form-container .declaration-value .font-medium {
+    letter-spacing: 0.035em;
+  }
+
+  #pedhinama .hetu-label,
+  #maran-form-container .hetu-label {
+    letter-spacing: 0.045em;
+  }
+
+  #pedhinama .hetu-input,
+  #maran-form-container .hetu-input {
+    letter-spacing: 0.035em;
+  }
+}

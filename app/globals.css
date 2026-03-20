@@ -1,22 +1,27 @@
 @import "tailwindcss";
+@import "./form-responsive.css";
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #000000;
   --ion-font-family: 'Noto Sans Gujarati', 'Arial', sans-serif;
+  --primary: #58420b;
+  --primary-soft: #f6edd2;
+  --primary-strong: #a38228;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #ffffff;
+    --foreground: #000000;
   }
 }
 
@@ -28,39 +33,252 @@ body {
   padding: 0;
 }
 
-/* Ionic overrides for better integration */
 .ion-page {
   display: block;
 }
 
-/* Ensure proper scrolling on mobile */
 html, body {
   height: 100%;
   overflow-x: hidden;
 }
 
-/* Gujarati font support */
 * {
   font-family: 'Noto Sans Gujarati', 'Arial', sans-serif;
 }
 
-/* Print styles */
+/* ========================
+   Scrollbar utility
+   ======================== */
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ========================
+   App bar (mobile / tablet)
+   ======================== */
+
+.app-bar {
+  background-color: var(--primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+/* ========================
+   Sidebar
+   ======================== */
+
+.sidebar {
+  background-color: var(--primary);
+  color: #ffffff;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+}
+
+.sidebar-border {
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.sidebar-nav-link {
+  color: #ffffff;
+  border-radius: 0.5rem;
+  transition: background-color 0.15s ease;
+}
+
+.sidebar-nav-link:hover {
+  background-color: var(--primary-strong);
+}
+
+.sidebar-nav-link.active {
+  background-color: var(--primary-strong);
+  color: #ffffff;
+}
+
+.sidebar-icon-box {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.sidebar-icon-box.active {
+  background-color: rgba(0, 0, 0, 0.18);
+}
+
+.sidebar-collapse-btn {
+  background-color: var(--primary-strong);
+  color: #ffffff;
+}
+
+.sidebar-collapse-btn:hover {
+  background-color: #8b681f;
+}
+
+/* ========================
+   Print styles
+   ======================== */
+
 @media print {
   body {
     background: white;
   }
-  
-  .no-print {
+
+  .no-print,
+  .app-bar,
+  .sidebar {
     display: none !important;
   }
 }
 
-/* 
-@font-face {
-  font-family: 'Gujarati';
-  src: url('/fonts/Shruti.ttf');
+/* ========================
+   Datepicker overrides
+   ======================== */
+
+.datepicker-popper {
+  z-index: 9999 !important;
 }
 
-.pdf-root {
-  font-family: 'Gujarati';
-} */
+.datepicker-calendar.react-datepicker {
+  min-width: 280px;
+  padding: 0.75rem;
+  font-family: 'Noto Sans Gujarati', 'Arial', sans-serif;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.datepicker-calendar .react-datepicker__header {
+  padding: 0.5rem 0;
+  margin-bottom: 0.5rem;
+}
+
+.datepicker-calendar .react-datepicker__month-container {
+  padding: 0.25rem 0;
+}
+
+.datepicker-calendar .react-datepicker__day-names,
+.datepicker-calendar .react-datepicker__week {
+  display: flex;
+  justify-content: space-around;
+  gap: 0.25rem;
+}
+
+.datepicker-calendar .react-datepicker__day-name,
+.datepicker-calendar .react-datepicker__day {
+  width: 2rem;
+  height: 2rem;
+  line-height: 2rem;
+  margin: 0.125rem;
+  border-radius: 0.25rem;
+}
+
+.datepicker-calendar .react-datepicker__month-dropdown-container,
+.datepicker-calendar .react-datepicker__year-dropdown-container {
+  margin: 0 0.25rem;
+}
+
+.datepicker-calendar .react-datepicker__current-month {
+  margin-bottom: 0.5rem;
+}
+
+/* ========================
+   Form typography & spacing
+   ======================== */
+
+#pedhinama .input-name,
+#maran-form-container .input-name {
+  letter-spacing: 0.03em;
+}
+
+#pedhinama .declaration-value .font-medium,
+#maran-form-container .declaration-value .font-medium {
+  letter-spacing: 0.03em;
+}
+
+#pedhinama .hetu-label,
+#maran-form-container .hetu-label {
+  letter-spacing: 0.04em;
+}
+
+#pedhinama .hetu-input,
+#maran-form-container .hetu-input {
+  letter-spacing: 0.03em;
+}
+
+#pedhinama select,
+#maran-form-container select {
+  box-sizing: border-box;
+  max-width: 100%;
+  color: #111827;
+}
+
+#pedhinama select option,
+#maran-form-container select option {
+  color: #111827;
+  background: #fff;
+}
+
+#pedhinama .panch-field,
+#maran-form-container .panch-field,
+#pedhinama .form-field,
+#maran-form-container .form-field {
+  min-width: 0;
+}
+
+#pedhinama .declaration-flow,
+#maran-form-container .declaration-flow {
+  flex-wrap: wrap;
+}
+
+#pedhinama .declaration-flow .declaration-line,
+#maran-form-container .declaration-flow .declaration-line {
+  width: 100%;
+  white-space: normal;
+}
+
+#pedhinama .declaration-flow,
+#maran-form-container .declaration-flow {
+  font-family: 'Noto Sans Gujarati', 'Shruti', 'Arial', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: #111827;
+  word-spacing: 0.05em;
+}
+
+#pedhinama .declaration-body,
+#maran-form-container .declaration-body {
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.75;
+  letter-spacing: 0.02em;
+  color: #111827;
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+  text-align: justify;
+}
+
+#pedhinama .declaration-body:first-of-type {
+  margin-top: 0.25rem;
+}
+
+#pedhinama .declaration-inline,
+#maran-form-container .declaration-inline {
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: 0.02em;
+}
+
+#pedhinama .declaration-date-wrap input,
+#maran-form-container .declaration-date-wrap input {
+  font-size: 0.9375rem;
+  font-family: 'Noto Sans Gujarati', 'Arial', sans-serif;
+  letter-spacing: 0.02em;
+}
+
+#pedhinama .declaration-date-wrap input::placeholder,
+#maran-form-container .declaration-date-wrap input::placeholder {
+  color: #6b7280;
+  font-weight: 400;
+}
